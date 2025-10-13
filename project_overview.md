@@ -28,6 +28,19 @@ Orders (Basket) - Products (Items)
 - Recommendation system comparison using aisle id compared with using word2vec/BERT and cosine similarity with threshold to categorize products. (Baseline for both: Recommend the most popular item in aisle/embedding group)
 - 
 
+# Chosen project
+- Recommend product using one of the following methods:
+    - Market Basket Analysis using Association rules. Choose the products with high lift
+    - Recommendation system using CF with item's aisle id's instead of item id
+    - Recommendation system using CF with item's cluster id (based on our clusters)
+    - Get ratio of rec/rand using either:
+        - Bought before ratio of new vs already bought
+        - Clustering users based on frequency, baskets, other features, and use the ratio of bought before
+
+
+    - Recommendation system using CF
+    
+    - Recommendation system using CF with item text embedding
 
 
 
