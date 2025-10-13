@@ -38,9 +38,12 @@ Orders (Basket) - Products (Items)
         - Clustering users based on frequency, baskets, other features, and use the ratio of bought before
 
 
-    - Recommendation system using CF
-    
-    - Recommendation system using CF with item text embedding
+## Details to figure out/define
+- How to construct scores matrix for the CF algorithm?
+- How to find the proportion between random recommendations and recommendations for products that the customer has bought before?
+- How to define a random recommendation?
+- How to convert an asile/cluster recommendation to a product recommendation? 
+    - When recommending a known item to the user, it could be the user's most bought item from that aisle
 
 
 
