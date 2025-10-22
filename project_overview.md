@@ -38,7 +38,7 @@ Orders (Basket) - Products (Items)
         - Clustering users based on frequency, baskets, other features, and use the ratio of bought before
 
 - Evaluation metrics/goal of the recommendations:
-    - Accuracy or NDCG 
+    - Precision or NDCG 
     - Reasonable to compute based on the data available
     - Motivated by the goal of providing the customers a fast and efficient e-shopping experience in which they want to find the items they need as fast as possible
     - Alternative goals:
