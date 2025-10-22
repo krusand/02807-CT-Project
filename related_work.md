@@ -83,6 +83,9 @@ Siam et. al. 2025. https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11172084
 Beregovskaya Irina and Koroteev Mikhail. 2021. https://arxiv.org/pdf/2109.12839
 
 - A good overview of clustering as a pre-processing step 
+- Clustering can be used to solve problems with sparsity of the rating matrix for CF
+- Clustering can also be used to effectively solve cold start problems when a new user or a new book, about which little is known, appears in the system
+- Idea: Cluster users and apply CF on each cluster (with all items or items potentially clustered as well)
 
 
 ## Automatic Collection Creation and Recommendation 
