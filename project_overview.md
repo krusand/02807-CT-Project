@@ -37,6 +37,15 @@ Orders (Basket) - Products (Items)
         - Bought before ratio of new vs already bought
         - Clustering users based on frequency, baskets, other features, and use the ratio of bought before
 
+- Evaluation metrics/goal of the recommendations:
+    - Accuracy or NDCG 
+    - Reasonable to compute based on the data available
+    - Motivated by the goal of providing the customers a fast and efficient e-shopping experience in which they want to find the items they need as fast as possible
+    - Alternative goals:
+        - Diversity
+        - Encouraging the customer's to browse the website and spend more time looking for items of interest
+        - Exposing the customer's to new items they might not be aware of 
+
 
 ## Details to figure out/define
 - How to construct scores matrix for the CF algorithm?
