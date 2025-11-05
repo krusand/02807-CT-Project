@@ -25,8 +25,7 @@ Orders (Basket) - Products (Items)
 - Clustering orders for recsys
 - Clustering using prices
 - RQ: What product should we put on discount for the highest probability for a user to buy, depending on week
-- Recommendation system comparison using aisle id compared with using word2vec/BERT and cosine similarity with threshold to categorize products. (Baseline for both: Recommend the most popular item in aisle/embedding group)
-- 
+- Recommendation system comparison using aisle id compared with using word2vec/BERT and cosine similarity with threshold to categorize products. (Baseline for both: Recommend the most popular item in aisle/embedding group) 
 
 # Chosen project
 - Recommend product using one of the following methods:
