@@ -56,9 +56,41 @@ Orders (Basket) - Products (Items)
 
 
 
+## Rating Metric
+Description of the rating we have come up with: $$r_{ui}=w_1\cdot\text{TF.IDF}_{ui}+w_2\cdot\text{recency}_{ui}+w_3\cdot\text{basketfreq}_{ui}$$
+Each submetric is defined like this:
 
+### TF.IDF
+- Should capture the proportion of item $i$ among all the products that user $u$ has bought as well as the product's overall popularity. 
+- The terms are the individual products.
+- The documents are the combined orders of each user.
+    - Example: 
+        - Basket 1: [apple, milk, bread]
+        - Basket 2: [apple, bread]
+        - Basket 3: [milk]
+        - Document (combined orders): [apple, milk, bread, apple, bread, milk]
+- Formula:
+$$\text{TF.IDF}_{ui}=\frac{n_{ui}}{N_u}\cdot\log\left(\frac{|D_i|}{|D|}\right)$$
+- $n_{ui}$: The number of times item $i$ occurs in the document of user $u$
+- $N_u$: The total number of items in the document of user $u$
+- $|D_i|$: The number of documents containing item $i$ across all users
+- $|D|$: The total number of documents (equivalent to the toal number of users)
 
+### Recency
+- Takes into account how many days ago user $u$ bought item $i$.
+- Computes a weight according to the number of days.
+- Lower weights are assigned to items that were bought a long time ago.
+- Higher weights are assigned to items were bought recently. 
+- $\lambda$ controls the degree of weight decay as the number of days since the product was bought increases.
+- Formula: $$\text{recency}_{ui}=\exp(-\lambda\cdot\text{days\_since\_last\_order}_{ui})$$
+- $\text{days\_since\_last\_order}_{ui}$: The number of days since user $u$ placed an order containing item $i$
+- $\lambda$ is a hyperparameter that needs to be tuned. 
 
+### Basket Frequency
+- Accounts for vanishing signals (compared to the TF definition above) when multiple unique items are bought as a part of the same order.
+- Formula: $$\text{basketfreq}_{ui}=\frac{|B_{ui}|}{|B_u|}$$
+- $|B_{ui}|$: Number of baskets for user $u$ containing item $i$.
+- $|B_u|$: Total number of baskets (orders) for user $u$.
 
 
 
