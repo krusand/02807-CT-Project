@@ -13,7 +13,7 @@ def download_dataset() -> str:
 
 def move_dataset_from_cache_to_folder(path_to_cache: str, path_to_folder: str) -> None:
     shutil.copytree(path_to_cache, path_to_folder, dirs_exist_ok=True)
-    shutil.rmtree(path_to_folder / "data")
+    shutil.rmtree(path_to_folder / "data", ignore_errors=True)
 
 if __name__ == "__main__":
     path_to_cache = download_dataset()
