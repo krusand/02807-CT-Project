@@ -1,6 +1,8 @@
+from collections import defaultdict
 from typing import Iterable
 
 from lenskit.algorithms.als import BiasedMF
+import numpy as np
 import pandas as pd
 
 def get_cf_scores(features: int, 
@@ -51,3 +53,43 @@ def get_cf_scores(features: int,
         scores_dict[user] = scores
 
     return scores_dict
+
+
+def get_recs(scores_dict, n_recs, d_hondts=True) -> dict:
+    """
+    Generates a list of length n_recs of recommended items, aisles, or clusters for each user.
+
+    Parameters:
+    - scores_dict:  Predicted scores output from the cf algorithm.
+    - n_recs:       Number of recommended items, aisles, or clusters. 
+    - d_hondts:     Whether to apply D'Hondts method or not. 
+
+    Returns:
+    - recs_dict:    Dictionary containing recommendations per user. 
+    """
+    recs_dict = defaultdict(list)
+
+    if d_hondts:
+        for user, ratings in scores_dict.items():
+            for _ in range(n_recs):
+                # retrieving index of recommended item (the item with the current highest rating)
+                rec_item_idx = ratings.index(max(ratings))
+                recs_dict[user].append(rec_item_idx)
+
+                # apply D'Hondts method by halving rating of recommended item
+                ratings[rec_item_idx] *= 0.5 
+
+    else:
+        users = scores_dict.keys()
+        first_user = users[0]
+        n_items = len(scores_dict[first_user])
+
+        # checking if there are more unique items than recommendations to generate
+        assert n_items >= n_recs, "The number of unique items must equal to n_recs or higher!"
+
+        for user, ratings in scores_dict.items():
+            # retrieving indices of recommended items (the n_recs items with the highest rating)
+            rec_item_idxs = list(np.argsort(ratings)[::-1][:n_recs])
+            recs_dict[user] = rec_item_idxs
+
+    return recs_dict
