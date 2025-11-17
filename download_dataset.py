@@ -1,6 +1,11 @@
 import kagglehub
 import shutil
+import os
+import pandas as pd
+from tqdm import tqdm
+
 from config import *
+
 
 def download_dataset() -> str:
     import kagglehub
@@ -15,7 +20,15 @@ def move_dataset_from_cache_to_folder(path_to_cache: str, path_to_folder: str) -
     shutil.copytree(path_to_cache, path_to_folder, dirs_exist_ok=True)
     shutil.rmtree(path_to_folder / "data", ignore_errors=True)
 
+def convert_to_parquet() -> None:
+
+    for file in tqdm(os.listdir(DATA_RAW_DIR)):
+        file_name, file_extension = file.split(".")
+        file_extension = "."+(file_extension)
+        pd.read_csv(DATA_RAW_DIR / (file_name + file_extension)).to_parquet(DATA_CLEANED_DIR / (file_name + ".pq"))
+
 if __name__ == "__main__":
     path_to_cache = download_dataset()
     move_dataset_from_cache_to_folder(path_to_cache=path_to_cache, path_to_folder=DATA_RAW_DIR)
+    convert_to_parquet()
 
