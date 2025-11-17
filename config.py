@@ -1,12 +1,26 @@
 from pathlib import Path
 import logging
+import os
 
 PROJ_ROOT = Path(__file__).resolve().parents[0]
 
 DATA_DIR = PROJ_ROOT / "data"
-DATA_RAW_DIR = DATA_DIR / "raw"
-DATA_CLEANED_DIR = DATA_DIR / "cleaned"
-DATA_PREPROCESSED_DIR = DATA_DIR / "preprocessed"
+DATA_RAW_DIR = DATA_DIR / "0_raw"
+DATA_CLEANED_DIR = DATA_DIR / "1_cleaned"
+DATA_PREPROCESSED_DIR = DATA_DIR / "2_preprocessed"
+
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+
+if not os.path.exists(DATA_RAW_DIR):
+    os.makedirs(DATA_RAW_DIR)
+
+if not os.path.exists(DATA_CLEANED_DIR):
+    os.makedirs(DATA_CLEANED_DIR)
+
+if not os.path.exists(DATA_PREPROCESSED_DIR):
+    os.makedirs(DATA_PREPROCESSED_DIR)
+
 
 AISLES_PATH = DATA_CLEANED_DIR / "aisles.pq"
 DEPARTMENTS_PATH = DATA_CLEANED_DIR / "departments.pq"
@@ -16,3 +30,16 @@ ORDERS_PATH = DATA_CLEANED_DIR / "orders.pq"
 PRODUCTS_PATH = DATA_CLEANED_DIR / "products.pq"
 
 
+
+
+AISLES_PATH_CSV = DATA_RAW_DIR / "aisles.csv"
+DEPARTMENTS_PATH_CSV = DATA_RAW_DIR / "departments.csv"
+ORDER_PRODUCTS__PRIOR_PATH_CSV = DATA_RAW_DIR / "order_products__prior.csv"
+ORDER_PRODUCTS__TRAIN_PATH_CSV = DATA_RAW_DIR / "order_products__train.csv"
+ORDERS_PATH_CSV = DATA_RAW_DIR / "orders.csv"
+PRODUCTS_PATH_CSV = DATA_RAW_DIR / "products.csv"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s"
+)
