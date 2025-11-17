@@ -5,19 +5,25 @@ import subprocess
 from pathlib import Path
 from config import *
 import argparse
-import logging
 
 from datetime import datetime
+
 
 def get_pipeline_steps():
 
     pipeline_steps = [
         #### EVENTS:
 
-        { # --> RAW
-            "name": "Download dataset",
-            "script": "download_dataset.py",
-            "description": "Downloads dataset",
+        # { # DOWNLOAD DATASET
+        #     "name": "Download dataset",
+        #     "script": "download_dataset.py",
+        #     "description": "Downloads dataset",
+        # },
+
+        { # CALCULATE RATINGS
+            "name": "Calculate rating",
+            "script": "calculate_rating.py",
+            "description": "Calculate rating",
         }
     ]
     
