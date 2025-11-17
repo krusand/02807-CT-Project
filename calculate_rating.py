@@ -66,7 +66,7 @@ def calculate_user_product_recency(merged_df: pd.DataFrame, lam: float = 0.0015)
     freq.to_parquet(file_path, index=False)
     logging.info(f"Saved user_product_recency to {file_path}")
 
-    freq['min_max_score'] = (
+    freq['recency_score_min_maxed'] = (
         (freq['score'] - freq['score'].min()) /
         (freq['score'].max() - freq['score'].min())
     )
@@ -121,8 +121,8 @@ def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
     final_tfidf_scores.to_parquet(file_path, index=False)
     logging.info(f"Saved user_product_tfidf to {file_path}")
 
-    # Normalization (min-max scaling)
-    final_tfidf_scores['tfidf_score'] = (
+    # min-max scaling
+    final_tfidf_scores['tfidf_score_min_maxed'] = (
         (final_tfidf_scores['tfidf_score'] - final_tfidf_scores['tfidf_score'].min()) /
         (final_tfidf_scores['tfidf_score'].max() - final_tfidf_scores['tfidf_score'].min())
     )
@@ -143,23 +143,17 @@ def combine_ratings() -> None:
                  .merge(tfidf, on=['user_id', 'product_id'], how='inner')
     )
 
-    merged = merged.rename(columns={
-        'score':'recency_score', # e^-λ
-        'normalized_score' : 'normalized_recency',
-        'tfidf_score' : 'normalized_tfidf'
-        })
-
     w_freq, w_rec, w_tfidf = ((1/3), (1/3), (1/3))
 
     merged['ranke_ui'] = (
         w_freq * merged['freq_ui'] +
-        w_rec * merged['normalized_recency'] +
-        w_tfidf * merged['normalized_tfidf']
+        w_rec * merged['recency_score_min_maxed'] +
+        w_tfidf * merged['tfidf_score_min_maxed']
     )
 
     final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
 
-    filename_parquet = f"ratings_{w_freq:.2f}_{w_rec:.2f}_{w_tfidf:.2f}.pq"
+    filename_parquet = f"ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
     file_path = DATA_PREPROCESSED_DIR / filename_parquet
     final_ratings.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
