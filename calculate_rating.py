@@ -8,7 +8,7 @@ from config import *
 
 
 def calculate_user_product_frequency(merged_df: pd.DataFrame) -> None: 
-    logging.info(f"Beginning ")
+    logging.info("")
     bui = (
         merged_df.groupby(['user_id', 'product_id'])['order_id']
         .nunique()
@@ -30,6 +30,7 @@ def calculate_user_product_frequency(merged_df: pd.DataFrame) -> None:
 
 
 def calculate_user_product_recency(merged_df: pd.DataFrame, lam: float = 0.0015) -> None:
+    logging.info("")
     # replace NaN for first orders
     merged_df['days_since_prior_order'] = merged_df['days_since_prior_order'].fillna(0)
 
@@ -78,7 +79,7 @@ def calculate_user_product_recency(merged_df: pd.DataFrame, lam: float = 0.0015)
 
 
 def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
-    
+    logging.info("")
     tf = (merged_df
           .groupby(['user_id', 'product_id'])
           .size()
@@ -131,6 +132,37 @@ def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
     final_tfidf_scores.to_parquet(file_path, index=False)
     logging.info(f"Saved user_product_tfidf min_max_scaled to {file_path}")
 
+def combine_ratings() -> None:
+    logging.info("")
+    frequency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_frequency.pq")
+    recency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_recency_min_max_scaled.pq")
+    tfidf = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_tfidf_min_max_scaled.pq")
+
+    merged = (
+        frequency.merge(recency, on=['user_id', 'product_id'], how='inner')
+                 .merge(tfidf, on=['user_id', 'product_id'], how='inner')
+    )
+
+    merged = merged.rename(columns={
+        'score':'recency_score', # e^-λ
+        'normalized_score' : 'normalized_recency',
+        'tfidf_score' : 'normalized_tfidf'
+        })
+
+    w_freq, w_rec, w_tfidf = ((1/3), (1/3), (1/3))
+
+    merged['ranke_ui'] = (
+        w_freq * merged['freq_ui'] +
+        w_rec * merged['normalized_recency'] +
+        w_tfidf * merged['normalized_tfidf']
+    )
+
+    final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
+
+    filename_parquet = f"ratings_{w_freq:.2f}_{w_rec:.2f}_{w_tfidf:.2f}.pq"
+    file_path = DATA_PREPROCESSED_DIR / filename_parquet
+    final_ratings.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
 
 
 def main():
@@ -148,6 +180,7 @@ def main():
     calculate_user_product_frequency(merged_df=merged_df.copy())
     calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
     calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
+    combine_ratings()
 
 if __name__ == "__main__":
     main()

@@ -41,5 +41,5 @@ PRODUCTS_PATH_CSV = DATA_RAW_DIR / "products.csv"
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s\n"
 )
