@@ -21,8 +21,6 @@ def move_dataset_from_cache_to_folder(path_to_cache: str, path_to_folder: str) -
     shutil.rmtree(path_to_folder / "data", ignore_errors=True)
 
 def convert_to_parquet() -> None:
-    if not os.path.exists(DATA_CLEANED_DIR):
-        os.makedirs(DATA_CLEANED_DIR)
 
     for file in tqdm(os.listdir(DATA_RAW_DIR)):
         file_name, file_extension = file.split(".")
