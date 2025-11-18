@@ -200,6 +200,7 @@ def main():
     calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
     calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
     combine_ratings()
+    save_sparse_matrix()
 
 if __name__ == "__main__":
     main()
