@@ -3,6 +3,10 @@ import numpy as np
 import os
 from tqdm import tqdm
 import sys
+import scipy.sparse as sparse
+from pandas.api.types import CategoricalDtype
+import pickle as pkl
+
 
 from config import *
 
@@ -158,6 +162,27 @@ def combine_ratings() -> None:
     final_ratings.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
 
+def save_sparse_matrix() -> None:
+    logging.info("")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+
+    users = ratings_long["user_id"].unique()
+    products = ratings_long["product_id"].unique()
+    shape = (len(users), len(products))
+
+    # Create indices for users and movies
+    user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
+    product_cat = CategoricalDtype(categories=sorted(products), ordered=True)
+    user_index = ratings_long["user_id"].astype(user_cat).cat.codes
+    product_index = ratings_long["product_id"].astype(product_cat).cat.codes
+
+    # Conversion via COO matrix
+    coo = sparse.coo_matrix((ratings_long["ranke_ui"], (user_index, product_index)), shape=shape)
+    ratings_matrix = coo.tocsr()
+
+    with open(DATA_PREPROCESSED_DIR / "ratings_csr_matrix.pkl", 'wb') as fp:
+        pkl.dump(ratings_matrix, file=fp)
 
 def main():
     
