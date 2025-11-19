@@ -20,11 +20,11 @@ def get_pipeline_steps():
         #     "description": "Downloads dataset",
         # },
 
-        { # CALCULATE RATINGS
-            "name": "Calculate rating",
-            "script": "calculate_rating.py",
-            "description": "Calculate rating",
-        },
+        # { # CALCULATE RATINGS
+        #     "name": "Calculate rating",
+        #     "script": "calculate_rating.py",
+        #     "description": "Calculate rating",
+        # },
 
         { # COLLABORATIVE FILTERING
             "name": "Collaborative filtering",

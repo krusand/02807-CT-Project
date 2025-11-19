@@ -188,7 +188,7 @@ def save_unique_users() -> None:
     logging.info("")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
 
-    users = ratings_long["user_id"].drop_duplicates().to_frame().reset_index()
+    users = ratings_long["user"].drop_duplicates().to_frame().reset_index()
 
     file_path = DATA_PREPROCESSED_DIR / "unique_users.pq"
     users.to_parquet(file_path, index=False)
@@ -198,10 +198,10 @@ def save_unique_products() -> None:
     logging.info("")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
 
-    users = ratings_long["product_id"].drop_duplicates().to_frame().reset_index()
+    products = ratings_long["item"].drop_duplicates().to_frame().reset_index()
 
     file_path = DATA_PREPROCESSED_DIR / "unique_products.pq"
-    users.to_parquet(file_path, index=False)
+    products.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
 
 def main():
