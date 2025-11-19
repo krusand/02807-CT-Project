@@ -156,6 +156,7 @@ def combine_ratings() -> None:
     )
 
     final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
+    final_ratings.columns = ["user", "item", 'rating']
 
     filename_parquet = f"ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
     file_path = DATA_PREPROCESSED_DIR / filename_parquet
@@ -165,7 +166,6 @@ def combine_ratings() -> None:
 def save_sparse_matrix() -> None:
     logging.info("")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
-
 
     users = ratings_long["user_id"].unique()
     products = ratings_long["product_id"].unique()
@@ -184,6 +184,26 @@ def save_sparse_matrix() -> None:
     with open(DATA_PREPROCESSED_DIR / "ratings_csr_matrix.pkl", 'wb') as fp:
         pkl.dump(ratings_matrix, file=fp)
 
+def save_unique_users() -> None:
+    logging.info("")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    users = ratings_long["user_id"].drop_duplicates().to_frame().reset_index()
+
+    file_path = DATA_PREPROCESSED_DIR / "unique_users.pq"
+    users.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+def save_unique_products() -> None:
+    logging.info("")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    users = ratings_long["product_id"].drop_duplicates().to_frame().reset_index()
+
+    file_path = DATA_PREPROCESSED_DIR / "unique_products.pq"
+    users.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
 def main():
     
     orders = pd.read_parquet(ORDERS_PATH)
@@ -200,7 +220,8 @@ def main():
     calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
     calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
     combine_ratings()
-    save_sparse_matrix()
+    save_unique_users()
+    save_unique_products()
 
 if __name__ == "__main__":
     main()
