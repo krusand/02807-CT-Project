@@ -1,0 +1,47 @@
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+2025-11-18 16:38:46,236 - INFO - pipeline.run_pipeline:54 - Starting pipeline
+
+2025-11-18 16:38:46,236 - INFO - pipeline.run_pipeline:64 - Step: Download dataset
+
+2025-11-18 16:38:46,236 - INFO - pipeline.run_pipeline:65 - Description: Downloads dataset
+
+  0%|          | 0/6 [00:00<?, ?it/s] 17%|█▋        | 1/6 [00:00<00:03,  1.51it/s] 50%|█████     | 3/6 [00:12<00:14,  4.70s/it] 83%|████████▎ | 5/6 [00:15<00:03,  3.04s/it]100%|██████████| 6/6 [00:15<00:00,  2.64s/it]
+2025-11-18 16:39:06,002 - INFO - pipeline.run_script:44 - Finished: /zhome/78/f/224081/Computational_tools/02807-CT-Project/download_dataset.py
+
+2025-11-18 16:39:06,002 - INFO - pipeline.run_pipeline:64 - Step: Calculate rating
+
+2025-11-18 16:39:06,002 - INFO - pipeline.run_pipeline:65 - Description: Calculate rating
+
+2025-11-18 16:39:17,982 - INFO - calculate_rating.calculate_user_product_frequency:11 - 
+
+2025-11-18 16:39:39,579 - INFO - calculate_rating.calculate_user_product_frequency:28 - Saved user_product_frequency to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/user_product_frequency.pq
+
+2025-11-18 16:39:42,744 - INFO - calculate_rating.calculate_user_product_recency:33 - 
+
+2025-11-18 16:39:58,639 - INFO - calculate_rating.calculate_user_product_recency:67 - Saved user_product_recency to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/user_product_recency.pq
+
+2025-11-18 16:40:00,420 - INFO - calculate_rating.calculate_user_product_recency:77 - Saved user_product_recency min_max_scaled to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/user_product_recency_min_max_scaled.pq
+
+2025-11-18 16:40:04,135 - INFO - calculate_rating.calculate_tf_idf:82 - 
+
+2025-11-18 16:40:28,268 - INFO - calculate_rating.calculate_tf_idf:122 - Saved user_product_tfidf to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/user_product_tfidf.pq
+
+/zhome/78/f/224081/Computational_tools/02807-CT-Project/calculate_rating.py:125: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_tfidf_scores['tfidf_score_min_maxed'] = (
+2025-11-18 16:40:30,067 - INFO - calculate_rating.calculate_tf_idf:133 - Saved user_product_tfidf min_max_scaled to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/user_product_tfidf_min_max_scaled.pq
+
+2025-11-18 16:40:30,308 - INFO - calculate_rating.combine_ratings:136 - 
+
+2025-11-18 16:40:45,822 - INFO - calculate_rating.combine_ratings:159 - Saved ratings to /zhome/78/f/224081/Computational_tools/02807-CT-Project/data/2_preprocessed/ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq
+
+2025-11-18 16:40:46,303 - INFO - pipeline.run_script:44 - Finished: /zhome/78/f/224081/Computational_tools/02807-CT-Project/calculate_rating.py
+

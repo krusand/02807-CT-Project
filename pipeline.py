@@ -14,16 +14,22 @@ def get_pipeline_steps():
     pipeline_steps = [
         #### EVENTS:
 
-        { # DOWNLOAD DATASET
-            "name": "Download dataset",
-            "script": "download_dataset.py",
-            "description": "Downloads dataset",
-        },
+        # { # DOWNLOAD DATASET
+        #     "name": "Download dataset",
+        #     "script": "download_dataset.py",
+        #     "description": "Downloads dataset",
+        # },
 
-        { # CALCULATE RATINGS
-            "name": "Calculate rating",
-            "script": "calculate_rating.py",
-            "description": "Calculate rating",
+        # { # CALCULATE RATINGS
+        #     "name": "Calculate rating",
+        #     "script": "calculate_rating.py",
+        #     "description": "Calculate rating",
+        # },
+
+        { # COLLABORATIVE FILTERING
+            "name": "Collaborative filtering",
+            "script": "collaborative_filter.py",
+            "description": "Runs collaborative filtering"
         }
     ]
     
