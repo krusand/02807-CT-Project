@@ -1,0 +1,15 @@
+In terminal:
+module load python3/3.10.13
+
+Then
+
+python3 -m venv .venv
+
+Then 
+
+sed -i -e '1imodule load python3/3.10.13\' .venv/bin/activate
+
+
+
+
+
