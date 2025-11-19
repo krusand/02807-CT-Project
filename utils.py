@@ -5,63 +5,14 @@ from lenskit.algorithms.als import BiasedMF
 import numpy as np
 import pandas as pd
 
-def get_cf_scores(features: int, 
-                  rating_df: pd.DataFrame,
-                  users: Iterable,
-                  items: Iterable,
-                  iterations=20,
-                  reg=0.1,
-                  damping=5,
-                  bias=True,
-                  seed=51225)-> dict:
-    """
-    Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
-    Lenskit documentation for the BiasedMF model: https://lenskit.org/0.14.4/mf#lenskit.algorithms.svd.BiasedSVD
 
-    Parameters:
-    - features:         The number of latent features in the user and item vectors learned by the model.
-    - rating_df:        The training data containing ratings for the items rated by each user.
-    - users:            An iterable containing the ID of all users.
-    - items:            An iterable containing the ID of all items. 
-    - iterations:       The number of training iterations (default: 20).
-    - reg:              Regularization factors, can also be a tuple (ureg, ireg) to specify separate user and item regularization terms (default: 0.1).
-    - damping:          Damping factor for the underlying bias (default: 5). 
-    - bias:             Whether to include a bias term in the prediction rule or not (default: True). 
-    - seed:             Seed for reproducibility purposes (default: 51225).
-
-    Returns:
-    - scores_dict:      Dictionary containing the predicted score for each pair of user and item.
-    """
-
-    # initializing dictionary containing predicted scores for each user and item
-    scores_dict = {}
-
-    # initializing the BiasedMF model
-    mf = BiasedMF(features=features, 
-                  iterations=iterations, 
-                  reg=reg, 
-                  damping=damping, 
-                  bias=bias,
-                  rng_spec=seed)
-    
-    # fitting the BiasedMF model
-    mf.fit(rating_df)
-
-    # generating scores for each user and saving to the scores_dict
-    for user in users:
-        scores = list(mf.predict_for_user(user, items))
-        scores_dict[user] = scores
-
-    return scores_dict
-
-
-def get_recs(scores_dict, n_recs, d_hondts=True) -> dict:
+def get_recs_old(scores_dict: dict, n_recs=6, d_hondts=True) -> dict:
     """
     Generates a list of length n_recs of recommended items, aisles, or clusters for each user.
 
     Parameters:
     - scores_dict:  Predicted scores output from the cf algorithm.
-    - n_recs:       Number of recommended items, aisles, or clusters. 
+    - n_recs:       Number of recommended items, aisles, or clusters (6 by default). 
     - d_hondts:     Whether to apply D'Hondts method or not. 
 
     Returns:
@@ -93,3 +44,120 @@ def get_recs(scores_dict, n_recs, d_hondts=True) -> dict:
             recs_dict[user] = rec_item_idxs
 
     return recs_dict
+
+
+def get_recs(pred_ratings: np.ndarray, 
+             mf: BiasedMF, 
+             n_recs=6) -> dict:
+    """
+    Function to generate the recommendations from the predicted ratings returned by BiasedMF.
+
+    Parameters:
+    - pred_ratings:     Array containing the predicted ratings (output from BiasedMF).
+    - mf:               Instance of the BiasedMF model.
+    - n_recs:           Number of recommendations to generate for each user (6 by default).
+
+    Returns:
+    - recs_dict:        Dictionary with users as the keys and lists of recommendations as the values. 
+    """
+    # obtaining sorted indices for recommendations
+    top_idx = np.argpartition(pred_ratings, -n_recs, axis=1)[:, -n_recs:]
+    rows = np.arange(pred_ratings.shape[0])[:, None]
+    top_idx_sorted = top_idx[rows, np.argsort(-pred_ratings[rows, top_idx], axis=1)]
+
+    # initializing users and items from mf instance
+    users = mf.user_index_
+    items = mf.item_index_
+
+    # initializing dictionary to store recommendations
+    recs_dict = defaultdict(list)
+
+    # retrieving recommendations for each user
+    for n, user in enumerate(users):
+        recs_idx = top_idx_sorted[n, :].tolist()
+        recs = [items[rec_idx] for rec_idx in recs_idx]
+        recs_dict[user] = recs
+    
+    return recs_dict
+
+
+def get_cf_scores(features: int, 
+                  rating_df: pd.DataFrame,
+                  n_epochs=20,
+                  reg=0.1,
+                  damping=5,
+                  bias=True,
+                  seed=51225,
+                  n_recs=6)-> dict:
+    """
+    Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
+    Lenskit documentation for the BiasedMF model: https://lenskit.org/0.14.4/mf#lenskit.algorithms.svd.BiasedSVD
+
+    Parameters:
+    - features:         The number of latent features in the user and item vectors learned by the model.
+    - rating_df:        The training data containing ratings for the items rated by each user.
+    - iterations:       The number of training iterations (default: 20).
+    - reg:              Regularization factors, can also be a tuple (ureg, ireg) to specify separate user and item regularization terms (default: 0.1).
+    - damping:          Damping factor for the underlying bias (default: 5). 
+    - bias:             Whether to include a bias term in the prediction rule or not (default: True). 
+    - seed:             Seed for reproducibility purposes (default: 51225).
+    - n_recs:           Number of recommendations to generate for each user (6 by default).
+
+    Returns:
+    - pred_ratings:      Dictionary containing the predicted score for each pair of user and item.
+    """
+    # initializing the BiasedMF model
+    mf = BiasedMF(features=features, 
+                  iterations=n_epochs, 
+                  reg=reg, 
+                  damping=damping, 
+                  bias=bias,
+                  rng_spec=seed)
+    
+    # epoch generator
+    epoch_gen = mf.fit_iters(rating_df)
+
+    # initializing the pred_ratings and ndcg of the previous epoch 
+    pred_ratings = None
+    prev_ndcg = 2   # will always be between 0 and 1 when training and evaluating on the val users
+
+    # train for n_epochs or until early stopping is triggered 
+    for epoch in range(n_epochs):
+        print(f"Epoch: {epoch+1}")
+
+        # run an epoch
+        next(epoch_gen)
+
+        # user matrix of shape [n_users × k]
+        U = mf.user_features_
+
+        # item matrix of shape [n_items × k]
+        V = mf.item_features_
+
+        if bias:
+            # retrieving bias terms
+            mu = mf.bias.mean_
+            ub = mf.bias.user_offsets_.reindex(mf.user_index_).to_numpy()
+            ib = mf.bias.item_offsets_.reindex(mf.item_index_).to_numpy()
+            ub = ub.reshape(-1, 1)   # shape [n_users, 1]
+            ib = ib.reshape(1, -1)   # shape [1, n_items]
+
+            # matrix of predicted ratings: [n_users × n_items]
+            pred_ratings = U @ V.T + mu + ub + ib
+        
+        else:
+            pred_ratings = U @ V.T
+        
+        # extract recommendations from pred_ratings
+        recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+
+        # evaluate on val set (obtain ndcg@6)
+        raise NotImplementedError("Evaluation function needs to be implemented! Should return hit-rate and ndcg per user.")
+
+        # trigger early stopping
+
+        prev_ratings = pred_ratings
+
+    return prev_ratings
+
+
