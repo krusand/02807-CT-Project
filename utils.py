@@ -81,6 +81,69 @@ def get_recs(pred_ratings: np.ndarray,
     return recs_dict
 
 
+def construct_test_product_dict(mode: str) -> dict:
+    """
+    Constructs a dictionary whose keys are user_ids and values are list of product_ids corresponding to the items bought by the validation or test users.
+
+    Parameters:
+    - mode:     Equal to "val" or "test" depending on which users to evaluate for. 
+
+    Returns:
+    - user_product_dict:    Dictionary containing the products bought in the last order for either the val or test users. 
+    """
+    orders_df = pd.read_csv("data/orders.csv")   # use path from config instead
+
+    if mode == "val":
+        val_df = orders_df[orders_df["eval_set"] == "train"] 
+        order_products_train_df = pd.read_csv("data/order_products__train.csv")   # use path from config instead
+        val_products_df = order_products_train_df.merge(val_df, on="order_id", how="left")[["product_id", "user_id"]]
+    
+    elif mode == "test":
+        raise NotImplementedError("Must find the products corresponding to the test orders.")
+
+    else:
+        raise ValueError("The mode parameter must be either 'val' or 'test'.")
+    
+    user_product_dict = val_products_df.groupby("user_id")["product_id"].apply(list).to_dict()
+
+    return user_product_dict
+
+
+def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> dict:
+    """
+    Function to evaluate the generated recommendations in terms of hit-rate and ndcg. 
+
+    Parameters:
+    - recs_dict:        Dictionary containing recommendations, user_ids as keys and list of recommended product_ids as values.
+    - rating_matrix:    Dataframe containing the ratings for each pair of user and item.
+    - test_products:    Dictionary containing the products bought by each user in the val/test period, user_ids as keys and list of product_ids as values.
+
+    Returns:
+    - eval_dict:        Dictionary containing the evaluation results on user level, user_ids as keys and dictionaries containing evaluation metrics as values.
+    """
+    eval_dict = defaultdict(dict)
+
+    for user, item_list in test_products.items():
+        # retrieving recommendations from recs_dict
+        user_recs = recs_dict[user]
+
+        # converting lists to sets
+        item_set = set(item_list)
+        recs_set = set(user_recs)
+
+        # finding the number of common items between the recommendations and the items bought
+        common_items = len(item_set.intersection(recs_set))
+
+        # appending the hit-rate for the user to the eval_dict
+        if common_items >= 1:
+            eval_dict[user]["hit-rate"] = 1
+        else:
+            eval_dict[user]["hit-rate"] = 0
+
+    
+    return eval_dict
+
+
 def get_cf_scores(features: int, 
                   rating_df: pd.DataFrame,
                   n_epochs=20,
@@ -120,6 +183,9 @@ def get_cf_scores(features: int,
     # initializing the pred_ratings and ndcg of the previous epoch 
     pred_ratings = None
     prev_ndcg = 2   # will always be between 0 and 1 when training and evaluating on the val users
+
+    # dictionary containing the items bought for the val users
+    val_products = construct_test_product_dict(mode="val")
 
     # train for n_epochs or until early stopping is triggered 
     for epoch in range(n_epochs):
