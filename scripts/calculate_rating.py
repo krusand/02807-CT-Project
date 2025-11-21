@@ -168,18 +168,18 @@ def save_sparse_matrix() -> None:
     logging.info("")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
 
-    users = ratings_long["user_id"].unique()
-    products = ratings_long["product_id"].unique()
+    users = ratings_long["user"].unique()
+    products = ratings_long["item"].unique()
     shape = (len(users), len(products))
 
     # Create indices for users and movies
     user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
     product_cat = CategoricalDtype(categories=sorted(products), ordered=True)
-    user_index = ratings_long["user_id"].astype(user_cat).cat.codes
-    product_index = ratings_long["product_id"].astype(product_cat).cat.codes
+    user_index = ratings_long["user"].astype(user_cat).cat.codes
+    product_index = ratings_long["item"].astype(product_cat).cat.codes
 
     # Conversion via COO matrix
-    coo = sparse.coo_matrix((ratings_long["ranke_ui"], (user_index, product_index)), shape=shape)
+    coo = sparse.coo_matrix((ratings_long["rating"], (user_index, product_index)), shape=shape)
     ratings_matrix = coo.tocsr()
 
     with open(DATA_PREPROCESSED_DIR / "ratings_csr_matrix.pkl", 'wb') as fp:
