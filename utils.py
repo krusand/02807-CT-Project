@@ -123,9 +123,17 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
     """
     eval_dict = defaultdict(dict)
 
+    # converting the rating_df to a dictionary
+    rating_dict = (rating_df
+                   .groupby("user")
+                   .apply(lambda df: dict(zip(df["item"], df["rating"])))
+                   .to_dict()
+                   )
+
     for user, item_list in test_products.items():
         # retrieving recommendations from recs_dict
         user_recs = recs_dict[user]
+        n_recs = len(user_recs)
 
         # converting lists to sets
         item_set = set(item_list)
@@ -140,26 +148,49 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
         else:
             eval_dict[user]["hit-rate"] = 0
 
-    
+        # capping the ratings for the user at n_recs
+        user_ratings = rating_dict[user]
+        capped_user_rating_dict = dict(list(user_ratings.items())[:n_recs])
+
+        # computing optimal dcg
+        dcg_star = 0
+        for j, rating in enumerate(capped_user_rating_dict.values()):
+            dcg_star += rating / np.log2(j + 2)   # +2 because position should start at 1
+        
+        # computing dcg based on recommendations
+        dcg = 0
+        for j, item in enumerate(user_recs):
+            if item in rating_dict:
+                rating = rating_dict[item]
+                dcg += rating / np.log2(j + 2)
+        
+        # computing ndcg
+        ndcg = dcg / dcg_star
+
+        # appending ndcg for the user to the eval_dict
+        eval_dict[user][f"ndcg@{n_recs}"] = ndcg
+        
     return eval_dict
 
 
 def get_cf_scores(features: int, 
-                  rating_df: pd.DataFrame,
+                  rating_df_train: pd.DataFrame,
+                  rating_df_val: pd.DataFrame,
                   n_epochs=20,
                   reg=0.1,
                   damping=5,
                   bias=True,
                   seed=51225,
-                  n_recs=6)-> dict:
+                  n_recs=6) -> dict:
     """
     Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
     Lenskit documentation for the BiasedMF model: https://lenskit.org/0.14.4/mf#lenskit.algorithms.svd.BiasedSVD
 
     Parameters:
     - features:         The number of latent features in the user and item vectors learned by the model.
-    - rating_df:        The training data containing ratings for the items rated by each user.
-    - iterations:       The number of training iterations (default: 20).
+    - rating_df_train:  The training data containing ratings for the items rated by each user.
+    - rating_df_val:    The validation data containing ratings for the items rated by each user. 
+    - iterations:       The maximum number of training iterations (default: 20).
     - reg:              Regularization factors, can also be a tuple (ureg, ireg) to specify separate user and item regularization terms (default: 0.1).
     - damping:          Damping factor for the underlying bias (default: 5). 
     - bias:             Whether to include a bias term in the prediction rule or not (default: True). 
@@ -178,11 +209,11 @@ def get_cf_scores(features: int,
                   rng_spec=seed)
     
     # epoch generator
-    epoch_gen = mf.fit_iters(rating_df)
+    epoch_gen = mf.fit_iters(rating_df_train)
 
     # initializing the pred_ratings and ndcg of the previous epoch 
     pred_ratings = None
-    prev_ndcg = 2   # will always be between 0 and 1 when training and evaluating on the val users
+    prev_ndcg = -1   # will always be between 0 and 1 when training and evaluating on the val users
 
     # dictionary containing the items bought for the val users
     val_products = construct_test_product_dict(mode="val")
@@ -217,11 +248,17 @@ def get_cf_scores(features: int,
         # extract recommendations from pred_ratings
         recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
 
-        # evaluate on val set (obtain ndcg@6)
-        raise NotImplementedError("Evaluation function needs to be implemented! Should return hit-rate and ndcg per user.")
+        # evaluate on val set (obtain ndcg@n_recs)
+        eval_dict = eval_recs(recs_dict=recs_dict, rating_df=rating_df_val, test_products=val_products)
+        avg_ndcg = sum(d[f"ndcg@{n_recs}"] for d in eval_dict.values()) / len(eval_dict)
 
         # trigger early stopping
+        if avg_ndcg < prev_ndcg:
+            print(f"Average ndcg@{n_recs} ({avg_ndcg:.4f}) is lower than the previous ndcg@{n_recs} ({prev_ndcg:.4f}).")
+            print(f"Early stopping is triggered after {epoch + 1} epochs")
+            return prev_ratings
 
+        prev_ndcg = avg_ndcg
         prev_ratings = pred_ratings
 
     return prev_ratings
