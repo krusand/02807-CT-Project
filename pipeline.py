@@ -20,6 +20,12 @@ def get_pipeline_steps():
         #     "description": "Downloads dataset",
         # },
 
+        { # DATA SPLITS
+            "name": "Data splits",
+            "script": "data_split.py",
+            "description": "Splits the combined order_products into a train, validation, and test set"
+        },
+
         # { # CALCULATE RATINGS
         #     "name": "Calculate rating",
         #     "script": "calculate_rating.py",
