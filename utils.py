@@ -5,6 +5,8 @@ from lenskit.algorithms.als import BiasedMF
 import numpy as np
 import pandas as pd
 
+from config import *
+
 
 def get_recs_old(scores_dict: dict, n_recs=6, d_hondts=True) -> dict:
     """
@@ -91,19 +93,20 @@ def construct_test_product_dict(mode: str) -> dict:
     Returns:
     - user_product_dict:    Dictionary containing the products bought in the last order for either the val or test users. 
     """
-    orders_df = pd.read_csv("data/orders.csv")   # use path from config instead
+    orders_df = pd.read_parquet(ORDERS_PATH)   
 
     if mode == "val":
-        val_df = orders_df[orders_df["eval_set"] == "train"] 
-        order_products_train_df = pd.read_csv("data/order_products__train.csv")   # use path from config instead
-        val_products_df = order_products_train_df.merge(val_df, on="order_id", how="left")[["product_id", "user_id"]]
+        orders_df = orders_df[orders_df["eval_set"] == "val"] 
+        order_products_df = pd.read_parquet(ORDER_PRODUCTS__VAL_PATH)  
     
     elif mode == "test":
-        raise NotImplementedError("Must find the products corresponding to the test orders.")
+        orders_df = orders_df[orders_df["eval_set"] == "test"] 
+        order_products_df = pd.read_parquet(ORDER_PRODUCTS__TEST_PATH)  
 
     else:
         raise ValueError("The mode parameter must be either 'val' or 'test'.")
     
+    val_products_df = order_products_df.merge(orders_df, on="order_id", how="left")[["product_id", "user_id"]]
     user_product_dict = val_products_df.groupby("user_id")["product_id"].apply(list).to_dict()
 
     return user_product_dict
@@ -160,8 +163,8 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
         # computing dcg based on recommendations
         dcg = 0
         for j, item in enumerate(user_recs):
-            if item in rating_dict:
-                rating = rating_dict[item]
+            if item in user_ratings:
+                rating = user_ratings[item]
                 dcg += rating / np.log2(j + 2)
         
         # computing ndcg
