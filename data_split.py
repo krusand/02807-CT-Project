@@ -26,15 +26,22 @@ def main():
     orders_df.loc[orders_df["order_number"] == orders_df["n_orders"], "eval_set_new"] = "test"
     orders_df.loc[orders_df["order_number"] == orders_df["n_orders"] - 1, "eval_set_new"] = "val"
 
+    # drop n_orders and make eval_set_new the new eval_set column
+    orders_df["eval_set"] = orders_df["eval_set_new"]
+    orders_df = orders_df.drop(columns=["eval_set_new", "n_orders"])
+
+    # save orders_df to parquet
+    orders_df.to_parquet(ORDERS_PATH)
+
     logging.info("Creating parquet file for each split")
 
     # concatenate order_products data
     op_combined = pd.concat([op_prior, op_train])
 
     # order_ids in each split
-    train_orders = orders_df[orders_df["eval_set_new"]=="train"]["order_id"]
-    val_orders = orders_df[orders_df["eval_set_new"]=="val"]["order_id"]
-    test_orders = orders_df[orders_df["eval_set_new"]=="test"]["order_id"]
+    train_orders = orders_df[orders_df["eval_set"]=="train"]["order_id"]
+    val_orders = orders_df[orders_df["eval_set"]=="val"]["order_id"]
+    test_orders = orders_df[orders_df["eval_set"]=="test"]["order_id"]
 
     # order products for each split
     op_train_new = op_combined[op_combined["order_id"].isin(train_orders)]
