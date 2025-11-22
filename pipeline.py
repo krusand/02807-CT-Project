@@ -32,6 +32,12 @@ def get_pipeline_steps():
         #     "description": "Calculate rating",
         # },
 
+        { # BASELINE RECOMMENDER
+            "name": "Baseline recommender",
+            "script": "baseline_recommender.py",
+            "description": "Perform and evaluate top n recommender as baseline"
+        },
+
         { # COLLABORATIVE FILTERING
             "name": "Collaborative filtering",
             "script": "collaborative_filter.py",
