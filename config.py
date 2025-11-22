@@ -31,14 +31,15 @@ ORDERS_PATH = DATA_CLEANED_DIR / "orders.pq"
 PRODUCTS_PATH = DATA_CLEANED_DIR / "products.pq"
 
 
-
-
 AISLES_PATH_CSV = DATA_RAW_DIR / "aisles.csv"
 DEPARTMENTS_PATH_CSV = DATA_RAW_DIR / "departments.csv"
 ORDER_PRODUCTS__PRIOR_PATH_CSV = DATA_RAW_DIR / "order_products__prior.csv"
 ORDER_PRODUCTS__TRAIN_PATH_CSV = DATA_RAW_DIR / "order_products__train.csv"
 ORDERS_PATH_CSV = DATA_RAW_DIR / "orders.csv"
 PRODUCTS_PATH_CSV = DATA_RAW_DIR / "products.csv"
+
+
+UNIQUE_USERS_PATH = DATA_PREPROCESSED_DIR / "unique_users.pq"
 
 logging.basicConfig(
     level=logging.INFO,
