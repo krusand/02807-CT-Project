@@ -16,31 +16,31 @@ def get_pipeline_steps():
 
         # { # DOWNLOAD DATASET
         #     "name": "Download dataset",
-        #     "script": "download_dataset.py",
+        #     "script": "scripts/download_dataset.py",
         #     "description": "Downloads dataset",
         # },
 
         { # DATA SPLITS
             "name": "Data splits",
-            "script": "data_split.py",
+            "script": "scripts/data_split.py",
             "description": "Splits the combined order_products into a train, validation, and test set"
         },
 
         # { # CALCULATE RATINGS
         #     "name": "Calculate rating",
-        #     "script": "calculate_rating.py",
+        #     "script": "scripts/calculate_rating.py",
         #     "description": "Calculate rating",
         # },
 
         { # BASELINE RECOMMENDER
             "name": "Baseline recommender",
-            "script": "baseline_recommender.py",
+            "script": "scripts/baseline_recommender.py",
             "description": "Perform and evaluate top n recommender as baseline"
         },
 
         { # COLLABORATIVE FILTERING
             "name": "Collaborative filtering",
-            "script": "collaborative_filter.py",
+            "script": "scripts/collaborative_filter.py",
             "description": "Runs collaborative filtering"
         }
     ]
