@@ -207,7 +207,7 @@ def save_unique_products() -> None:
 def main():
     
     orders = pd.read_parquet(ORDERS_PATH)
-    order_products = pd.read_parquet(ORDER_PRODUCTS__PRIOR_PATH)
+    order_products = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
     
     merged_df = pd.merge(
         order_products,
