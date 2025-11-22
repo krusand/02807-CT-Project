@@ -136,7 +136,7 @@ def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
     final_tfidf_scores.to_parquet(file_path, index=False)
     logging.info(f"Saved user_product_tfidf min_max_scaled to {file_path}")
 
-def combine_ratings() -> None:
+def combine_ratings(mode: str) -> None:
     logging.info("")
     frequency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_frequency.pq")
     recency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_recency_min_max_scaled.pq")
@@ -158,7 +158,7 @@ def combine_ratings() -> None:
     final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
     final_ratings.columns = ["user", "item", 'rating']
 
-    filename_parquet = f"ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
+    filename_parquet = f"{mode}_ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
     file_path = DATA_PREPROCESSED_DIR / filename_parquet
     final_ratings.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
@@ -186,7 +186,7 @@ def save_sparse_matrix() -> None:
 
 def save_unique_users() -> None:
     logging.info("")
-    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
 
     users = ratings_long["user"].drop_duplicates().to_frame().reset_index()
 
@@ -196,7 +196,7 @@ def save_unique_users() -> None:
 
 def save_unique_products() -> None:
     logging.info("")
-    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
 
     products = ratings_long["item"].drop_duplicates().to_frame().reset_index()
 
@@ -205,23 +205,31 @@ def save_unique_products() -> None:
     logging.info(f"Saved ratings to {file_path}")
 
 def main():
+    path_dict = {"train": ORDER_PRODUCTS__TRAIN_PATH,
+                 "val": ORDER_PRODUCTS__VAL_PATH,
+                 "test": ORDER_PRODUCTS__TEST_PATH,
+                 }
     
     orders = pd.read_parquet(ORDERS_PATH)
-    order_products = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
-    
-    merged_df = pd.merge(
-        order_products,
-        orders,
-        on="order_id",
-        how="inner"
-    )
 
-    calculate_user_product_frequency(merged_df=merged_df.copy())
-    calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
-    calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
-    combine_ratings()
-    save_unique_users()
-    save_unique_products()
+    for mode, path in path_dict.items():
+        order_products = pd.read_parquet(path)
+        
+        merged_df = pd.merge(
+            order_products,
+            orders,
+            on="order_id",
+            how="inner"
+        )
+
+        calculate_user_product_frequency(merged_df=merged_df.copy())
+        calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
+        calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
+        combine_ratings(mode=mode)
+
+        if mode == "train":
+            save_unique_users()
+            save_unique_products()
 
 if __name__ == "__main__":
     main()
