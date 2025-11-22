@@ -1,14 +1,16 @@
+import os
+import pickle as pkl
+import sys
 
+import numpy as np
+import pandas as pd
+import scipy.sparse as sparse
+from tqdm import tqdm
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 from utils import *
 
-import pandas as pd
-import numpy as np
-import os
-from tqdm import tqdm
-import sys
-import scipy.sparse as sparse
-import pickle as pkl
 
 def main():
     ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 

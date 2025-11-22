@@ -1,6 +1,11 @@
+import os 
+import sys
+
 import pandas as pd
 
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
+
 
 def main():
     logging.info("Loading data")

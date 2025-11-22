@@ -1,6 +1,10 @@
+import os
+import sys 
+
 import numpy as np
 import pandas as pd
 
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 import utils as ut
 
