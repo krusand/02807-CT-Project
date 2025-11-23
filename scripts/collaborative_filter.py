@@ -23,7 +23,7 @@ def main():
 
     logging.info("Starting CF fit")
 
-    scores_dict = get_cf_scores(features=1000, ratings_df_train=train_ratings, rating_df_val=val_ratings)
+    scores_dict = get_cf_scores(features=1000, rating_df_train=train_ratings, rating_df_val=val_ratings)
     logging.info("Ended CF fit")
 
     logging.info("Starting recs")

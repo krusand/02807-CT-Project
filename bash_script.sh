@@ -2,6 +2,7 @@
 #BSUB -J test_ct_aks 
 #BSUB -n 1
 #BSUB -R "span[hosts=1]"
+#BSUB -q milan
 
 #BSUB -R "rusage[mem=50GB]"
 

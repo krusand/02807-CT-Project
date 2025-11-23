@@ -20,11 +20,11 @@ def get_pipeline_steps():
         #     "description": "Downloads dataset",
         # },
 
-        { # DATA SPLITS
-            "name": "Data splits",
-            "script": "scripts/data_split.py",
-            "description": "Splits the combined order_products into a train, validation, and test set"
-        },
+        # { # DATA SPLITS
+        #     "name": "Data splits",
+        #     "script": "scripts/data_split.py",
+        #     "description": "Splits the combined order_products into a train, validation, and test set"
+        # },
 
         # { # CALCULATE RATINGS
         #     "name": "Calculate rating",
@@ -32,11 +32,11 @@ def get_pipeline_steps():
         #     "description": "Calculate rating",
         # },
 
-        { # BASELINE RECOMMENDER
-            "name": "Baseline recommender",
-            "script": "scripts/baseline_recommender.py",
-            "description": "Perform and evaluate top n recommender as baseline"
-        },
+        # { # BASELINE RECOMMENDER
+        #     "name": "Baseline recommender",
+        #     "script": "scripts/baseline_recommender.py",
+        #     "description": "Perform and evaluate top n recommender as baseline"
+        # },
 
         { # COLLABORATIVE FILTERING
             "name": "Collaborative filtering",
