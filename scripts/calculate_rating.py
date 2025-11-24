@@ -205,6 +205,25 @@ def save_unique_products() -> None:
     products.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
 
+def save_aisle_ratings(mode: str) -> None:
+    logging.info("")
+    # loading products and ratings dataframes
+    products_df = pd.read_csv(PRODUCTS_PATH_CSV)
+    ratings_df = pd.read_parquet(f"{DATA_PREPROCESSED_DIR}/{mode}_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    # left joining the products dataframe onto the ratings dataframe
+    joined_df = ratings_df.merge(products_df, how="left", left_on="item", right_on="product_id")
+
+    # grouping by user and aisle_id and computing the average rating per (user, aisle_id)
+    grp_df = joined_df.groupby(["user", "aisle_id"])["rating"].mean().reset_index()
+    grp_df = grp_df.rename(columns={"aisle_id": "item"})
+
+    # saving the aisle ratings
+    file_path = f"{DATA_PREPROCESSED_DIR}/{mode}_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq"
+    grp_df.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+
 def main():
     path_dict = {"train": ORDER_PRODUCTS__TRAIN_PATH,
                  "val": ORDER_PRODUCTS__VAL_PATH,
@@ -231,6 +250,8 @@ def main():
         if mode == "train":
             save_unique_users()
             save_unique_products()
+
+        save_aisle_ratings(mode=mode)
 
 if __name__ == "__main__":
     main()
