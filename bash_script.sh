@@ -17,4 +17,5 @@ source .venv/bin/activate
 python collaborative_filter_experiments.py \
   --n_features "500,750,1000,1250,1500" \
   --reg_vals "0.001,0.01,0.1" \
-  --bias 0
+  --damping_vals "5,10" \
+  --bias 1

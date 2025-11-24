@@ -58,7 +58,6 @@ def main():
                                              reg=reg,
                                              damping=damping,
                                              bias=bias_value)
-            model_path = f"mf_models/{n_features}_{reg}_{damping}.pkl"
 
         else:
             print(f"\nTesting combination: features={n_features}, reg={reg}", flush=True)
@@ -67,13 +66,8 @@ def main():
                                              rating_df_val=val_ratings, 
                                              reg=reg,
                                              bias=bias_value)
-            model_path = f"mf_models/{n_features}_{reg}.pkl"
 
         logging.info("Ended CF fit")
-
-        logging.info(f"Saving BiasedMF model to {model_path}")
-        with open(f"{model_path}", "wb") as f:
-            pkl.dump(mf, f)
 
         logging.info("Starting recs")
         recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
