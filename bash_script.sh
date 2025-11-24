@@ -1,7 +1,8 @@
 #!/bin/sh
-#BSUB -J test_ct_aks 
+#BSUB -J __256gb_memory
 #BSUB -n 1
 #BSUB -R "span[hosts=1]"
+#BSUB -q milan
 
 #BSUB -R "rusage[mem=256GB]"
 
@@ -12,4 +13,5 @@
 #BSUB -e outputs/%J.err
 
 source .venv/bin/activate
-python pipeline.py
+#python pipeline.py
+python scripts/collaborative_filter.py

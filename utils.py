@@ -7,6 +7,9 @@ import pandas as pd
 
 from config import *
 
+import psutil
+
+
 
 def get_recs_old(scores_dict: dict, n_recs=6, d_hondts=True) -> dict:
     """
@@ -226,17 +229,23 @@ def get_cf_scores(features: int,
 
     # train for n_epochs or until early stopping is triggered 
     for epoch in range(n_epochs):
-        print(f"Epoch: {epoch}")
-
+        logging.info(f"Epoch: {epoch+1}")
+        process = psutil.Process()
+        logging.info(f"Pre-Memory used: {process.memory_info().rss * 1e-9} GB")
         # run an epoch
         next(epoch_gen)
+        logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
+        logging.info("Epoch train finished")
         # user matrix of shape [n_users × k]
         U = mf.user_features_
+        logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # item matrix of shape [n_items × k]
         V = mf.item_features_
+        logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
+        logging.info("Calculating ratings")
         if bias:
             # retrieving bias terms
             mu = mf.bias.mean_
@@ -250,9 +259,11 @@ def get_cf_scores(features: int,
         
         else:
             pred_ratings = U @ V.T
-        
+        logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
+
         # extract recommendations from pred_ratings
         recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+        logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # evaluate on val set (obtain ndcg@n_recs)
         eval_dict = eval_recs(recs_dict=recs_dict, rating_df=rating_df_val, test_products=val_products)
@@ -270,6 +281,7 @@ def get_cf_scores(features: int,
         prev_ndcg = avg_ndcg
         prev_ratings = pred_ratings
 
-    return prev_ratings, mf
+
+    return prev_ratings
 
 
