@@ -23,11 +23,11 @@ def main():
 
     logging.info("Starting CF fit")
 
-    scores_dict = get_cf_scores(features=1000, ratings_df_train=train_ratings, rating_df_val=val_ratings)
+    pred_ratings, mf = get_cf_scores(features=1000, rating_df_train=train_ratings, rating_df_val=val_ratings)
     logging.info("Ended CF fit")
 
     logging.info("Starting recs")
-    recs_dict = get_recs(scores_dict=scores_dict, n_recs=n_recs)
+    recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
     logging.info("Ending recs")
     with open(DATA_PREPROCESSED_DIR / "recs.pkl", 'wb') as fp:
         pkl.dump(recs_dict,file=fp)
@@ -37,7 +37,7 @@ def main():
     logging.info("Evaluating performance of CF recommender (all items, all users)")
     test_products = construct_test_product_dict(mode="test")
     eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
-
+    
     # computing average hit-rate and ndcg
     avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
     avg_ndcg = np.mean([metric_dict[f"ndcg@{n_recs}"] for metric_dict in eval_dict.values()])
