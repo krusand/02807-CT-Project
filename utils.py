@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Iterable
+from typing import Iterable, Tuple
 
 from lenskit.algorithms.als import BiasedMF
 import numpy as np
@@ -180,11 +180,12 @@ def get_cf_scores(features: int,
                   rating_df_train: pd.DataFrame,
                   rating_df_val: pd.DataFrame,
                   n_epochs=20,
+                  train_patience=5,
                   reg=0.1,
                   damping=5,
                   bias=True,
                   seed=51225,
-                  n_recs=6) -> dict:
+                  n_recs=6) -> Tuple[dict, BiasedMF]:
     """
     Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
     Lenskit documentation for the BiasedMF model: https://lenskit.org/0.14.4/mf#lenskit.algorithms.svd.BiasedSVD
@@ -193,7 +194,8 @@ def get_cf_scores(features: int,
     - features:         The number of latent features in the user and item vectors learned by the model.
     - rating_df_train:  The training data containing ratings for the items rated by each user.
     - rating_df_val:    The validation data containing ratings for the items rated by each user. 
-    - iterations:       The maximum number of training iterations (default: 20).
+    - n_epochs:         The maximum number of training iterations (default: 20).
+    - train_patience:   The number of epochs to run before early stopping can be applied (default: 5).    
     - reg:              Regularization factors, can also be a tuple (ureg, ireg) to specify separate user and item regularization terms (default: 0.1).
     - damping:          Damping factor for the underlying bias (default: 5). 
     - bias:             Whether to include a bias term in the prediction rule or not (default: True). 
@@ -201,7 +203,8 @@ def get_cf_scores(features: int,
     - n_recs:           Number of recommendations to generate for each user (6 by default).
 
     Returns:
-    - pred_ratings:      Dictionary containing the predicted score for each pair of user and item.
+    - pred_ratings:     Dictionary containing the predicted score for each pair of user and item.
+    - mf:               Fitted BiasedMF model.  
     """
     # initializing the BiasedMF model
     mf = BiasedMF(features=features, 
@@ -223,7 +226,7 @@ def get_cf_scores(features: int,
 
     # train for n_epochs or until early stopping is triggered 
     for epoch in range(n_epochs):
-        print(f"Epoch: {epoch+1}")
+        print(f"Epoch: {epoch}")
 
         # run an epoch
         next(epoch_gen)
@@ -253,17 +256,20 @@ def get_cf_scores(features: int,
 
         # evaluate on val set (obtain ndcg@n_recs)
         eval_dict = eval_recs(recs_dict=recs_dict, rating_df=rating_df_val, test_products=val_products)
+        avg_hit_rate = sum(d["hit-rate"] for d in eval_dict.values()) / len(eval_dict)
         avg_ndcg = sum(d[f"ndcg@{n_recs}"] for d in eval_dict.values()) / len(eval_dict)
+        print(f"Average hit-rate: {avg_hit_rate:.4f}")
+        print(f"Average ndcg@{n_recs}: {avg_ndcg:.4f}")
 
         # trigger early stopping
-        if avg_ndcg < prev_ndcg:
+        if avg_ndcg < prev_ndcg and epoch + 1 > train_patience:
             print(f"Average ndcg@{n_recs} ({avg_ndcg:.4f}) is lower than the previous ndcg@{n_recs} ({prev_ndcg:.4f}).")
             print(f"Early stopping is triggered after {epoch + 1} epochs")
-            return prev_ratings
+            return prev_ratings, mf
 
         prev_ndcg = avg_ndcg
         prev_ratings = pred_ratings
 
-    return prev_ratings
+    return prev_ratings, mf
 
 
