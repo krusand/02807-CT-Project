@@ -3,10 +3,10 @@
 #BSUB -n 1
 #BSUB -R "span[hosts=1]"
 
-#BSUB -R "rusage[mem=50GB]"
+#BSUB -R "rusage[mem=256GB]"
 
 ### ------------- specify wall-clock time (max allowed is 12:00)---------------- 
-#BSUB -W 01:00
+#BSUB -W 06:00
 
 #BSUB -o outputs/%J.out
 #BSUB -e outputs/%J.err
