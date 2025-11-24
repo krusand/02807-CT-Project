@@ -23,7 +23,7 @@ def main():
 
     logging.info("Starting CF fit")
 
-    pred_ratings, mf = get_cf_scores(features=1000, rating_df_train=train_ratings, rating_df_val=val_ratings)
+    pred_ratings, mf = get_cf_scores(features=1000, rating_df_train=train_ratings, rating_df_val=val_ratings, bias=False)
     logging.info("Ended CF fit")
 
     logging.info("Starting recs")
@@ -42,8 +42,8 @@ def main():
     avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
     avg_ndcg = np.mean([metric_dict[f"ndcg@{n_recs}"] for metric_dict in eval_dict.values()])
 
-    logging.info(f"The average hit-rate across all users is {avg_hr:.4f}")
-    logging.info(f"The average ndcg@{n_recs} across all users is {avg_ndcg:.4f}")
+    logging.info(f"The average hit-rate on the test set across all users is {avg_hr:.6f}")
+    logging.info(f"The average ndcg@{n_recs} on the test set across all users is {avg_ndcg:.6f}")
 
 if __name__ == "__main__":
     main()

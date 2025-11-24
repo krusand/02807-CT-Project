@@ -229,7 +229,8 @@ def get_cf_scores(features: int,
 
     # train for n_epochs or until early stopping is triggered 
     for epoch in range(n_epochs):
-        logging.info(f"Epoch: {epoch+1}")
+        print(f"Epoch: {epoch}", flush=True)
+        logging.info(f"Epoch: {epoch}")
         process = psutil.Process()
         logging.info(f"Pre-Memory used: {process.memory_info().rss * 1e-9} GB")
         # run an epoch
@@ -269,12 +270,12 @@ def get_cf_scores(features: int,
         eval_dict = eval_recs(recs_dict=recs_dict, rating_df=rating_df_val, test_products=val_products)
         avg_hit_rate = sum(d["hit-rate"] for d in eval_dict.values()) / len(eval_dict)
         avg_ndcg = sum(d[f"ndcg@{n_recs}"] for d in eval_dict.values()) / len(eval_dict)
-        print(f"Average hit-rate: {avg_hit_rate:.4f}")
-        print(f"Average ndcg@{n_recs}: {avg_ndcg:.4f}")
+        print(f"Average hit-rate: {avg_hit_rate:.6f}", flush=True)
+        print(f"Average ndcg@{n_recs}: {avg_ndcg:.6f}", flush=True)
 
         # trigger early stopping
         if avg_ndcg < prev_ndcg and epoch + 1 > train_patience:
-            print(f"Average ndcg@{n_recs} ({avg_ndcg:.4f}) is lower than the previous ndcg@{n_recs} ({prev_ndcg:.4f}).")
+            print(f"Average ndcg@{n_recs} ({avg_ndcg:.6f}) is lower than the previous ndcg@{n_recs} ({prev_ndcg:.6f}).")
             print(f"Early stopping is triggered after {epoch + 1} epochs")
             return prev_ratings, mf
 
