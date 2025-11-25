@@ -1,5 +1,6 @@
 import argparse
 import csv
+import gc
 from itertools import product
 import os
 import pickle as pkl
@@ -40,10 +41,11 @@ def main():
     print(f"Bias: {bias_value}", flush=True)
     print(f"Values for damping to test: {damping_values}", flush=True)
 
-    # loading ratings for each split
+    # loading ratings for each split and test products
     train_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     test_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "test_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+    test_products = construct_test_product_dict(mode="test")
     
     # number of recommendations to generate for each user
     n_recs = 6
@@ -78,7 +80,6 @@ def main():
         logging.info("Saved recs")
 
         logging.info("Evaluating performance of CF recommender (all items, all users)")
-        test_products = construct_test_product_dict(mode="test")
         eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
         
         # computing average hit-rate and ndcg
@@ -96,6 +97,10 @@ def main():
         with open("outputs/cf_experiment_results.csv", mode="a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
+
+        # freeing up some memory
+        del pred_ratings, mf, recs_dict, eval_dict, test_products
+        gc.collect()
 
 if __name__ == "__main__":
     main()
