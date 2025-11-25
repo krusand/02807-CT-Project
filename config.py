@@ -40,6 +40,7 @@ PRODUCTS_PATH_CSV = DATA_RAW_DIR / "products.csv"
 
 
 UNIQUE_USERS_PATH = DATA_PREPROCESSED_DIR / "unique_users.pq"
+AISLE_TOP_PRODUCTS_PATH = DATA_PREPROCESSED_DIR / "aisle_top_products.pq"
 
 logging.basicConfig(
     level=logging.INFO,
