@@ -102,11 +102,12 @@ def main():
         logging.info(f"The average ndcg@{n_recs} on the test set across all users is {avg_ndcg:.6f}")
 
         # writing row to csv
+        experiment_type = "all_users_aisles"
         if bias_value:
-            row = [n_features, damping, reg, bias_value, avg_hr, avg_ndcg]
+            row = [n_features, damping, reg, bias_value, avg_hr, avg_ndcg, experiment_type]
         else:
-            row = [n_features, "-", reg, bias_value, avg_hr, avg_ndcg]
-        with open("outputs/cf_experiment_results.csv", mode="a", newline="") as file:
+            row = [n_features, "-", reg, bias_value, avg_hr, avg_ndcg, experiment_type]
+        with open("outputs/cf_all_users_aisles_experiment_results.csv", mode="a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
 
