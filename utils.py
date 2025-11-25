@@ -283,6 +283,6 @@ def get_cf_scores(features: int,
         prev_ratings = pred_ratings
 
 
-    return prev_ratings
+    return prev_ratings, mf
 
 
