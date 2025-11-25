@@ -10,50 +10,10 @@ from config import *
 import psutil
 
 
-
-def get_recs_old(scores_dict: dict, n_recs=6, d_hondts=True) -> dict:
-    """
-    Generates a list of length n_recs of recommended items, aisles, or clusters for each user.
-
-    Parameters:
-    - scores_dict:  Predicted scores output from the cf algorithm.
-    - n_recs:       Number of recommended items, aisles, or clusters (6 by default). 
-    - d_hondts:     Whether to apply D'Hondts method or not. 
-
-    Returns:
-    - recs_dict:    Dictionary containing recommendations per user. 
-    """
-    recs_dict = defaultdict(list)
-
-    if d_hondts:
-        for user, ratings in scores_dict.items():
-            for _ in range(n_recs):
-                # retrieving index of recommended item (the item with the current highest rating)
-                rec_item_idx = ratings.index(max(ratings))
-                recs_dict[user].append(rec_item_idx)
-
-                # apply D'Hondts method by halving rating of recommended item
-                ratings[rec_item_idx] *= 0.5 
-
-    else:
-        users = scores_dict.keys()
-        first_user = users[0]
-        n_items = len(scores_dict[first_user])
-
-        # checking if there are more unique items than recommendations to generate
-        assert n_items >= n_recs, "The number of unique items must equal to n_recs or higher!"
-
-        for user, ratings in scores_dict.items():
-            # retrieving indices of recommended items (the n_recs items with the highest rating)
-            rec_item_idxs = list(np.argsort(ratings)[::-1][:n_recs])
-            recs_dict[user] = rec_item_idxs
-
-    return recs_dict
-
-
 def get_recs(pred_ratings: np.ndarray, 
              mf: BiasedMF, 
-             n_recs=6) -> dict:
+             n_recs=6,
+             d_hondts=False) -> dict:
     """
     Function to generate the recommendations from the predicted ratings returned by BiasedMF.
 
@@ -66,9 +26,24 @@ def get_recs(pred_ratings: np.ndarray,
     - recs_dict:        Dictionary with users as the keys and lists of recommendations as the values. 
     """
     # obtaining sorted indices for recommendations
-    top_idx = np.argpartition(pred_ratings, -n_recs, axis=1)[:, -n_recs:]
-    rows = np.arange(pred_ratings.shape[0])[:, None]
-    top_idx_sorted = top_idx[rows, np.argsort(-pred_ratings[rows, top_idx], axis=1)]
+    if d_hondts:
+        scores = pred_ratings.copy()
+        n_users, _ = scores.shape
+
+        # array to store indices for each user
+        top_idx_sorted = np.zeros((n_users, n_recs), dtype=int)
+
+        for k in range(n_recs):
+            # choose item by computing argmax along each row (best item per user)
+            chosen = np.argmax(scores, axis=1)
+            top_idx_sorted[:, k] = chosen
+
+            # halve the chosen score per user
+            scores[np.arange(n_users), chosen] /= 2
+    else:
+        top_idx = np.argpartition(pred_ratings, -n_recs, axis=1)[:, -n_recs:]
+        rows = np.arange(pred_ratings.shape[0])[:, None]
+        top_idx_sorted = top_idx[rows, np.argsort(-pred_ratings[rows, top_idx], axis=1)]
 
     # initializing users and items from mf instance
     users = mf.user_index_
