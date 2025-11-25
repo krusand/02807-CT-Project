@@ -99,7 +99,7 @@ def main():
             writer.writerow(row)
 
         # freeing up some memory
-        del pred_ratings, mf, recs_dict, eval_dict, test_products
+        del pred_ratings, mf, recs_dict, eval_dict
         gc.collect()
 
 if __name__ == "__main__":
