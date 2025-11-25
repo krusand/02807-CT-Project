@@ -223,6 +223,28 @@ def save_aisle_ratings(mode: str) -> None:
     grp_df.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
 
+def save_aisle_top_products() -> None:
+    logging.info("")
+    # loading order products train and products dataframes
+    op_train = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
+    products_df = pd.read_csv(PRODUCTS_PATH_CSV)
+
+    # left joining products_df onto op_train
+    merged_df = op_train.merge(products_df, how="left", on="product_id")
+
+    # counting occurrence for each product per aisle
+    agg_df = (merged_df
+              .groupby(["product_id", "aisle_id"])
+              .size()
+              .reset_index(name="count")
+              .sort_values(['aisle_id', 'count'], ascending=[True, False])
+              )
+
+    # saving dictionary to parquet
+    file_path = f"{DATA_PREPROCESSED_DIR}/{AISLE_TOP_PRODUCTS_PATH}"
+    agg_df.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
 
 def main():
     path_dict = {"train": ORDER_PRODUCTS__TRAIN_PATH,
@@ -250,6 +272,7 @@ def main():
         if mode == "train":
             save_unique_users()
             save_unique_products()
+            save_aisle_top_products()
 
         save_aisle_ratings(mode=mode)
 
