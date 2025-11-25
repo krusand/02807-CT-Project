@@ -61,6 +61,32 @@ def get_recs(pred_ratings: np.ndarray,
     return recs_dict
 
 
+def convert_aisle_recs(recs_dict: dict, aisle_top_products: dict) -> dict:
+    """
+    Convert aisle recommendations into product recommendations by recommending the top products from the corresponding aisle. 
+
+    Parameters:
+    - recs_dict:            Dictionary containing aisle recommendations per user.
+    - aisle_top_products:   Dictionary containing the top products per aisle.
+    
+    Returns:
+    - product_recs_dict:    Dictionary containing product recommendations per user.
+    """
+    product_recs_dict = {}
+
+    for user, aisle_recs in recs_dict.items():
+        # copying the values such that we can pop the products for each user
+        top_dict = {k: v.copy() for k, v in aisle_top_products.items()}
+
+        # retrieving product recommendations
+        prod_recs = [top_dict[aisle].pop(0) for aisle in aisle_recs]
+
+        # saving to product_recs_dict
+        product_recs_dict[user] = prod_recs
+    
+    return product_recs_dict
+        
+
 def construct_test_product_dict(mode: str) -> dict:
     """
     Constructs a dictionary whose keys are user_ids and values are list of product_ids corresponding to the items bought by the validation or test users.
@@ -163,7 +189,11 @@ def get_cf_scores(features: int,
                   damping=5,
                   bias=True,
                   seed=51225,
-                  n_recs=6) -> Tuple[dict, BiasedMF]:
+                  n_recs=6,
+                  aisles=False,
+                  aisle_dict=None,
+                  user_clusters=False,
+                  ) -> Tuple[dict, BiasedMF]:
     """
     Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
     Lenskit documentation for the BiasedMF model: https://lenskit.org/0.14.4/mf#lenskit.algorithms.svd.BiasedSVD
@@ -179,6 +209,9 @@ def get_cf_scores(features: int,
     - bias:             Whether to include a bias term in the prediction rule or not (default: True). 
     - seed:             Seed for reproducibility purposes (default: 51225).
     - n_recs:           Number of recommendations to generate for each user (6 by default).
+    - aisles:           Whether the items are grouped by their aisle IDs or not (default: False).
+    - aisle_dict:       Dictionary containing to products for each aisle, only used if aisles=True.
+    - user_clusters:    Whether the users are clustered or not (default: False). 
 
     Returns:
     - pred_ratings:     Dictionary containing the predicted score for each pair of user and item.
@@ -238,7 +271,11 @@ def get_cf_scores(features: int,
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # extract recommendations from pred_ratings
-        recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+        if aisles:
+            aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
+            recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+        else: 
+            recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # evaluate on val set (obtain ndcg@n_recs)
