@@ -66,7 +66,7 @@ class PartitionGenerator:
 
 if __name__ == "__main__":
     partition_count = 1
-    user_id_count = 25000
+    user_id_count = 100
     seed = 555
     pg = PartitionGenerator(partition_count, user_id_count, seed)
     pg.run()
