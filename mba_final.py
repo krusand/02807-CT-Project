@@ -8,22 +8,12 @@ import pandas as pd
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import apriori, association_rules
 
+from config import *
 
-# -------------------------------------------------------------------
-# CONFIG: where your CSVs live + RNG seed
-# -------------------------------------------------------------------
-DATA_DIR = Path("data")
-# must have: order_id,product_id,add_to_cart_order,reordered
-ORDER_PRODUCTS_FILE = DATA_DIR / "order_products__prior.csv"
-# has: order_id,user_id,eval_set,order_number,order_dow,order_hour_of_day,days_since_prior_order
-ORDERS_FILE = DATA_DIR / "orders.csv"
-# has: product_id,product_name,...
-PRODUCTS_FILE = DATA_DIR / "products.csv"
 
 # Global random seed for reproducibility (mainly for any numpy randomness)
 SEED = 42
 np.random.seed(SEED)
-
 
 # -------------------------------------------------------------------
 # 0) Load & prepare data
@@ -33,9 +23,9 @@ def load_data() -> pd.DataFrame:
     Load data and return a DataFrame with at least:
         user_id, order_id, product_id, product_name, add_to_cart_order, reordered
     """
-    order_products = pd.read_csv(ORDER_PRODUCTS_FILE)
-    orders = pd.read_csv(ORDERS_FILE)
-    products = pd.read_csv(PRODUCTS_FILE)
+    order_products = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
+    orders = pd.read_csv(ORDERS_PATH_CSV)
+    products = pd.read_csv(PRODUCTS_PATH_CSV)
 
     # Keep only what we need from orders + products
     orders = orders[["order_id", "user_id"]]
