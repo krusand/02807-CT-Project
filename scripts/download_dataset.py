@@ -1,9 +1,12 @@
-import kagglehub
-import shutil
 import os
+import sys 
+
+import kagglehub
 import pandas as pd
+import shutil
 from tqdm import tqdm
 
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 
 

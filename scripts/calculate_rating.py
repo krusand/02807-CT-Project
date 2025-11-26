@@ -1,13 +1,14 @@
-import pandas as pd
-import numpy as np
 import os
-from tqdm import tqdm
-import sys
-import scipy.sparse as sparse
-from pandas.api.types import CategoricalDtype
 import pickle as pkl
+import sys
 
+import numpy as np
+import pandas as pd
+from pandas.api.types import CategoricalDtype
+import scipy.sparse as sparse
+from tqdm import tqdm
 
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 
 
@@ -136,7 +137,7 @@ def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
     final_tfidf_scores.to_parquet(file_path, index=False)
     logging.info(f"Saved user_product_tfidf min_max_scaled to {file_path}")
 
-def combine_ratings() -> None:
+def combine_ratings(mode: str) -> None:
     logging.info("")
     frequency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_frequency.pq")
     recency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_recency_min_max_scaled.pq")
@@ -156,8 +157,9 @@ def combine_ratings() -> None:
     )
 
     final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
+    final_ratings.columns = ["user", "item", 'rating']
 
-    filename_parquet = f"ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
+    filename_parquet = f"{mode}_ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
     file_path = DATA_PREPROCESSED_DIR / filename_parquet
     final_ratings.to_parquet(file_path, index=False)
     logging.info(f"Saved ratings to {file_path}")
@@ -165,7 +167,6 @@ def combine_ratings() -> None:
 def save_sparse_matrix() -> None:
     logging.info("")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
-
 
     users = ratings_long["user_id"].unique()
     products = ratings_long["product_id"].unique()
@@ -184,23 +185,96 @@ def save_sparse_matrix() -> None:
     with open(DATA_PREPROCESSED_DIR / "ratings_csr_matrix.pkl", 'wb') as fp:
         pkl.dump(ratings_matrix, file=fp)
 
+def save_unique_users() -> None:
+    logging.info("")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    users = ratings_long["user"].drop_duplicates().to_frame().reset_index()
+
+    file_path = DATA_PREPROCESSED_DIR / "unique_users.pq"
+    users.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+def save_unique_products() -> None:
+    logging.info("")
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    products = ratings_long["item"].drop_duplicates().to_frame().reset_index()
+
+    file_path = DATA_PREPROCESSED_DIR / "unique_products.pq"
+    products.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+def save_aisle_ratings(mode: str) -> None:
+    logging.info("")
+    # loading products and ratings dataframes
+    products_df = pd.read_csv(PRODUCTS_PATH_CSV)
+    ratings_df = pd.read_parquet(f"{DATA_PREPROCESSED_DIR}/{mode}_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+
+    # left joining the products dataframe onto the ratings dataframe
+    joined_df = ratings_df.merge(products_df, how="left", left_on="item", right_on="product_id")
+
+    # grouping by user and aisle_id and computing the average rating per (user, aisle_id)
+    grp_df = joined_df.groupby(["user", "aisle_id"])["rating"].mean().reset_index()
+    grp_df = grp_df.rename(columns={"aisle_id": "item"})
+
+    # saving the aisle ratings
+    file_path = f"{DATA_PREPROCESSED_DIR}/{mode}_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq"
+    grp_df.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+def save_aisle_top_products() -> None:
+    logging.info("")
+    # loading order products train and products dataframes
+    op_train = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
+    products_df = pd.read_csv(PRODUCTS_PATH_CSV)
+
+    # left joining products_df onto op_train
+    merged_df = op_train.merge(products_df, how="left", on="product_id")
+
+    # counting occurrence for each product per aisle
+    agg_df = (merged_df
+              .groupby(["product_id", "aisle_id"])
+              .size()
+              .reset_index(name="count")
+              .sort_values(['aisle_id', 'count'], ascending=[True, False])
+              )
+
+    # saving dictionary to parquet
+    file_path = f"{DATA_PREPROCESSED_DIR}/{AISLE_TOP_PRODUCTS_PATH}"
+    agg_df.to_parquet(file_path, index=False)
+    logging.info(f"Saved ratings to {file_path}")
+
+
 def main():
+    path_dict = {"train": ORDER_PRODUCTS__TRAIN_PATH,
+                 "val": ORDER_PRODUCTS__VAL_PATH,
+                 "test": ORDER_PRODUCTS__TEST_PATH,
+                 }
     
     orders = pd.read_parquet(ORDERS_PATH)
-    order_products = pd.read_parquet(ORDER_PRODUCTS__PRIOR_PATH)
-    
-    merged_df = pd.merge(
-        order_products,
-        orders,
-        on="order_id",
-        how="inner"
-    )
 
-    calculate_user_product_frequency(merged_df=merged_df.copy())
-    calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
-    calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
-    combine_ratings()
-    save_sparse_matrix()
+    for mode, path in path_dict.items():
+        order_products = pd.read_parquet(path)
+        
+        merged_df = pd.merge(
+            order_products,
+            orders,
+            on="order_id",
+            how="inner"
+        )
+
+        calculate_user_product_frequency(merged_df=merged_df.copy())
+        calculate_user_product_recency(merged_df=merged_df.copy(), lam=0.0015)
+        calculate_tf_idf(merged_df=merged_df.copy(), orders=orders.copy())
+        combine_ratings(mode=mode)
+
+        if mode == "train":
+            save_unique_users()
+            save_unique_products()
+            save_aisle_top_products()
+
+        save_aisle_ratings(mode=mode)
 
 if __name__ == "__main__":
     main()
