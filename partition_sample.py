@@ -65,8 +65,8 @@ class PartitionGenerator:
         return total_orders, total_unique, self.output_csv
 
 if __name__ == "__main__":
-    partition_count = 4
-    user_id_count = 10
-    seed = 42
+    partition_count = 1
+    user_id_count = 100
+    seed = 555
     pg = PartitionGenerator(partition_count, user_id_count, seed)
     pg.run()
