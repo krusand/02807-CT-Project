@@ -3,12 +3,10 @@ import csv
 import gc
 from itertools import product
 import os
-import pickle as pkl
 import sys
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as sparse
 from tqdm import tqdm
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
@@ -44,8 +42,7 @@ def main():
     # loading ratings for each split and test products
     train_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
-    test_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "test_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
-    test_products = construct_test_product_dict(mode="test")
+    val_products = construct_test_product_dict(mode="val")
     
     # number of recommendations to generate for each user
     n_recs = 6
@@ -74,13 +71,10 @@ def main():
         logging.info("Starting recs")
         recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
         logging.info("Ending recs")
-        with open(DATA_PREPROCESSED_DIR / "recs.pkl", 'wb') as fp:
-            pkl.dump(recs_dict,file=fp)
+        
 
-        logging.info("Saved recs")
-
-        logging.info("Evaluating performance of CF recommender (all items, all users)")
-        eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
+        logging.info("Evaluating performance of CF recommender (all items, all users) on validation set")
+        eval_dict = eval_recs(recs_dict=recs_dict, rating_df=val_ratings, test_products=val_products)
         
         # computing average hit-rate and ndcg
         avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
@@ -93,8 +87,8 @@ def main():
         if bias_value:
             row = [n_features, damping, reg, bias_value, avg_hr, avg_ndcg]
         else:
-            row = [n_features, "-", reg, bias_value, avg_hr, avg_ndcg]
-        with open("outputs/cf_experiment_results.csv", mode="a", newline="") as file:
+            row = [n_features, None, reg, bias_value, avg_hr, avg_ndcg]
+        with open(CF_ALL_USERS_ALL_ITEMS_EXP_PATH, mode="a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
 
