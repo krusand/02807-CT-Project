@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from config import *
+from sklearn.base import BaseEstimator, TransformerMixin
 
 import psutil
 
@@ -298,3 +299,44 @@ def get_cf_scores(features: int,
     return prev_ratings, mf
 
 
+
+
+
+class DOWEncoder(BaseEstimator, TransformerMixin):
+    """Encodes an int denoting DOW (1-7), to polar coordinates, allowing cyclic features representation"""
+    def __init__(self, return_pd = True) -> pd.DataFrame:
+        self.return_pd = return_pd
+        return
+
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        def encode_day(day):
+            rad = 2*np.pi*day / 7
+            return np.round(np.cos(rad),3), np.round(np.sin(rad),3)
+        X["X_day_dir"], X["Y_day_dir"] = zip(*X["order_dow"].apply(encode_day))
+        X = X.drop("order_dow",axis=1)
+        if self.return_pd:
+            return X.copy()
+        return X
+
+
+class HourOfDayEncoder(BaseEstimator, TransformerMixin):
+    """Encodes an int denoting hour (0-24), to polar coordinates, allowing cyclic features representation"""
+    def __init__(self, return_pd = True):
+        self.return_pd = return_pd
+        return
+
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X) -> pd.DataFrame:
+        def encode_hour(HourOfDay: int):
+            rad = 2*np.pi*HourOfDay / 24
+            return np.round(np.cos(rad),3), np.round(np.sin(rad),3)
+        X["X_hour_dir"], X["Y_hour_dir"] = zip(*X["order_hour_of_day"].apply(encode_hour))
+        X = X.drop("order_hour_of_day",axis=1)
+        if self.return_pd:
+            return X.copy()
+        return X

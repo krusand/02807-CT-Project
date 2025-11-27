@@ -32,17 +32,23 @@ def get_pipeline_steps():
         #     "description": "Calculate rating",
         # },
 
+        { # USER CLUSTERING
+            "name": "User clustering",
+            "script": "scripts/clustering.py",
+            "description": "Clusters users into clusters s.t. it's faster to run recommender system"
+        },
+
         # { # BASELINE RECOMMENDER
         #     "name": "Baseline recommender",
         #     "script": "scripts/baseline_recommender.py",
         #     "description": "Perform and evaluate top n recommender as baseline"
         # },
 
-        { # COLLABORATIVE FILTERING
-            "name": "Collaborative filtering",
-            "script": "scripts/collaborative_filter.py",
-            "description": "Runs collaborative filtering"
-        }
+        # { # COLLABORATIVE FILTERING
+        #     "name": "Collaborative filtering",
+        #     "script": "scripts/collaborative_filter.py",
+        #     "description": "Runs collaborative filtering"
+        # }
     ]
     
     return pipeline_steps
