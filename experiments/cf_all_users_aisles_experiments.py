@@ -39,7 +39,7 @@ def main():
     print(f"Bias: {bias_value}", flush=True)
     print(f"Values for damping to test: {damping_values}", flush=True)
 
-    # loading ratings for each split and test products
+    # loading ratings for each split and validation products
     train_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     val_products = construct_test_product_dict(mode="val")
@@ -92,8 +92,8 @@ def main():
         avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
         avg_ndcg = np.mean([metric_dict[f"ndcg@{n_recs}"] for metric_dict in eval_dict.values()])
 
-        logging.info(f"The average hit-rate on the test set across all users is {avg_hr:.6f}")
-        logging.info(f"The average ndcg@{n_recs} on the test set across all users is {avg_ndcg:.6f}")
+        logging.info(f"The average hit-rate on the validation set across all users is {avg_hr:.6f}")
+        logging.info(f"The average ndcg@{n_recs} on the validation set across all users is {avg_ndcg:.6f}")
 
         # writing row to csv
         experiment_type = "all_users_aisles"
