@@ -1,4 +1,5 @@
-
+import sys
+import os
 
 from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
@@ -6,11 +7,14 @@ from sklearn.decomposition import TruncatedSVD
 import pandas as pd
 import numpy as np
 
-from config import *
 from pandas.api.types import CategoricalDtype
 import scipy.sparse as sparse
 
 import pickle as pkl 
+
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
+from config import *
 
 def convert_to_user_term_matrix(ratings):
     """Converts from long to wide in CSR format. Input must have column names ['user', 'item', 'rating']"""
@@ -58,7 +62,7 @@ def save_cluster_user_dict(user_cluster_preds):
                         .assign(user = lambda x: x["user"].tolist()))
     
     cluster_user_dict = {i: row["user"].tolist() for i,row in cluster_user_df.iterrows()}
-    with open(DATA_PREPROCESSED_DIR / "cluster_user_dict", "wb") as fp:
+    with open(DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl", "wb") as fp:
         pkl.dump(cluster_user_dict, fp)
 
     
@@ -77,13 +81,14 @@ def save_cluster_ratings(ratings_long, user_cluster_preds):
 
 
 def main():
+    logging.info("Started clustering users")
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     user_index, _, ratings_matrix = convert_to_user_term_matrix(ratings_long)
     y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix)
     user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
     save_cluster_user_dict(user_cluster_preds=user_cluster_preds)
     save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds)
-
+    logging.info("Finished clustering users")
 
 
 if __name__ == '__main__':
