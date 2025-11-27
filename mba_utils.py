@@ -600,6 +600,6 @@ def build_user_recs_dict(
         ids = [name_to_id.get(n) for n in names]
         # Filter out any None (in case of missing mapping)
         ids = [pid for pid in ids if pid is not None]
-        user_recs[uid] = ids
+        user_recs[int(uid)] = ids
 
     return user_recs
