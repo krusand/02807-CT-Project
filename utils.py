@@ -197,7 +197,10 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
                 dcg += rating / np.log2(j + 2)
         
         # computing ndcg
-        ndcg = dcg / dcg_star
+        if dcg_star == 0:
+            ndcg = 0
+        else:
+            ndcg = dcg / dcg_star
 
         # appending ndcg for the user to the eval_dict
         eval_dict[user][f"ndcg@{n_recs}"] = ndcg
@@ -218,6 +221,7 @@ def get_cf_scores(features: int,
                   aisles=False,
                   aisle_dict=None,
                   user_clusters=False,
+                  cluster_user_dict=None,
                   ) -> Tuple[dict, BiasedMF]:
     """
     Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
@@ -299,6 +303,9 @@ def get_cf_scores(features: int,
         if aisles:
             aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
             recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+        elif user_clusters:
+            cluster_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+            recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
         else: 
             recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")

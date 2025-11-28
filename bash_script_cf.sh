@@ -16,6 +16,6 @@ source .venv/bin/activate
 #python pipeline.py
 python experiments/cf_user_clusters_all_items_experiments.py \
   --n_features "500,1000,1500,2000" \
-  --reg_vals "0,0001,0.001,0.01" \
+  --reg_vals "0.0001,0.001,0.01" \
   --damping_vals "5,10" \
   --bias 1
