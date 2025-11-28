@@ -22,12 +22,14 @@ def main():
     parser.add_argument("--reg_vals", type=str, required=True, help="Comma-separated sequence of regularization values: x,y,z")
     parser.add_argument("--damping_vals", type=str, required=False, help="Comma-separated sequence of damping values: x,y,z")
     parser.add_argument("--bias", type=int, required=True, help="0 for no bias terms, 1 for including bias terms")
+    parser.add_argument("--n_clusters", type=str, required=False, help="Comma-separated sequence of integers: x,y,z")
     args = parser.parse_args()
 
     # parsing the input arguments
     n_features_values = [int(x) for x in args.n_features.split(",")]
     reg_values = [float(x) for x in args.reg_vals.split(",")]
     bias_value = bool(args.bias)
+    n_clusters_values = [int(x) for x in args.n_clusters.split(",")]
     if bias_value:
         damping_values = [float(x) for x in args.damping_vals.split(",")]
     else:
@@ -39,21 +41,30 @@ def main():
     print(f"Bias: {bias_value}", flush=True)
     print(f"Values for damping to test: {damping_values}", flush=True)
 
-    # loading ratings for each split and validation products
-    train_ratings = pd.read_parquet(TRAIN_CLUSTER_RATINGS_PATH) 
+    # loading ratings and products for validation set
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     val_products = construct_test_product_dict(mode="val")
     
-    # loading cluster_user_dict
-    cluster_user_dict = pd.read_pickle(CLUSTER_USER_DICT_PATH)
+    # preparing ratings for cluster ratings
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+    user_index, _, ratings_matrix = convert_to_user_term_matrix(ratings_long)
 
     # number of recommendations to generate for each user
     n_recs = 6
 
     logging.info("Starting CF fit")
-    for n_features, reg, damping in tqdm(list(product(n_features_values, reg_values, damping_values))):
+    for n_features, reg, damping, n_clusters in tqdm(list(product(n_features_values, reg_values, damping_values, n_clusters_values))):
+        logging.info("Started clustering users")
+        y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=n_clusters)
+        user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
+        save_cluster_user_dict(user_cluster_preds=user_cluster_preds)
+        save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds)
+        train_ratings = pd.read_parquet(TRAIN_CLUSTER_RATINGS_PATH) 
+        cluster_user_dict = pd.read_pickle(CLUSTER_USER_DICT_PATH)
+        logging.info("Finished clustering users")
+
         if bias_value:
-            print(f"\nTesting combination: features={n_features}, reg={reg}, damping={damping}", flush=True)
+            print(f"\nTesting combination: features={n_features}, reg={reg}, damping={damping}, n_clusters={n_clusters}", flush=True)
             pred_ratings, mf = get_cf_scores(features=n_features, 
                                              rating_df_train=train_ratings, 
                                              rating_df_val=val_ratings, 
@@ -64,7 +75,7 @@ def main():
                                              cluster_user_dict=cluster_user_dict)
 
         else:
-            print(f"\nTesting combination: features={n_features}, reg={reg}", flush=True)
+            print(f"\nTesting combination: features={n_features}, reg={reg}, n_clusters={n_clusters}", flush=True)
             pred_ratings, mf = get_cf_scores(features=n_features, 
                                              rating_df_train=train_ratings, 
                                              rating_df_val=val_ratings, 
