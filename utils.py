@@ -86,7 +86,31 @@ def convert_aisle_recs(recs_dict: dict, aisle_top_products: dict) -> dict:
         product_recs_dict[user] = prod_recs
     
     return product_recs_dict
-        
+
+
+def convert_user_cluster_recs(cluster_recs_dict: dict, cluster_user_dict: dict) -> dict:
+    """
+    Convert recommendations for each user cluster into recommendations for each user.
+
+    Parameters:
+    - cluster_recs_dict:    Recommendations for each user cluster.
+    - cluster_user_dict:    Dictionary whose keys are cluster IDs and values are list of user IDs belonging to that cluster.
+
+    Returns:
+    - user_recs_dict:       Recommendations for each user. 
+    """
+    user_recs_dict = {}
+
+    for cluster_id, recs in cluster_recs_dict.items():
+        # identify users in cluster
+        user_list = cluster_user_dict[cluster_id]
+
+        for user in user_list:
+            # recommend recs to all users in cluster
+            user_recs_dict[user] = recs
+
+    return user_recs_dict
+
 
 def construct_test_product_dict(mode: str) -> dict:
     """
