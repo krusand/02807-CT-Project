@@ -2,9 +2,12 @@ import argparse
 import csv
 import gc
 from itertools import product
+import os
+import sys
 
 from tqdm import tqdm
 
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 from mba_utils import *
 from utils import *

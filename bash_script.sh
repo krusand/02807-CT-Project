@@ -16,4 +16,4 @@ source .venv/bin/activate
 #python pipeline.py
 python experiments/mba_experiments.py \
   --support_grids "0.00001,0.0001" \
-  --min_confidences "0.001,0.005,0.01,0.05,0.1 \
+  --min_confidences "0.001,0.005,0.01,0.05,0.1"
