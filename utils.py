@@ -1,9 +1,14 @@
 from collections import defaultdict
-from typing import Iterable, Tuple
+import pickle as pkl
+from typing import Tuple
 
 from lenskit.algorithms.als import BiasedMF
 import numpy as np
 import pandas as pd
+from pandas.api.types import CategoricalDtype
+import scipy.sparse as sparse
+from sklearn.cluster import KMeans
+from sklearn.decomposition import TruncatedSVD
 
 from config import *
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -300,7 +305,11 @@ def get_cf_scores(features: int,
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # extract recommendations from pred_ratings
-        if aisles:
+        if aisles and user_clusters:
+            aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
+            cluster_recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+            recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
+        elif aisles:
             aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
             recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
         elif user_clusters:
@@ -330,6 +339,67 @@ def get_cf_scores(features: int,
     return prev_ratings, mf
 
 
+def convert_to_user_term_matrix(ratings):
+    """Converts from long to wide in CSR format. Input must have column names ['user', 'item', 'rating']"""
+    users = ratings["user"].unique()
+    item = ratings["item"].unique()
+    shape = (len(users), len(item))
+
+    # Create indices for users and movies
+    user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
+    product_cat = CategoricalDtype(categories=sorted(item), ordered=True)
+    user_index = ratings["user"].astype(user_cat).cat.codes
+    product_index = ratings["item"].astype(product_cat).cat.codes
+
+    # Conversion via COO matrix
+    coo = sparse.coo_matrix((ratings["rating"], (user_index, product_index)), shape=shape)
+    ratings_matrix = coo.tocsr()
+    return user_index, product_index, ratings_matrix
+
+def cluster_and_predict_users(ratings_matrix, n_clusters=50, n_representative_features=50):
+
+    svd = TruncatedSVD(n_components=n_representative_features)
+    X_svd = svd.fit_transform(ratings_matrix)
+
+    km = KMeans(n_clusters=n_clusters)
+    y_pred = km.fit_predict(X_svd)
+
+    return y_pred
+
+def assign_cluster_to_users(y_pred, ratings_long):
+
+    user_cluster_preds = (ratings_long[["user"]]
+                    .drop_duplicates()
+                    .assign(cluster=y_pred)
+    )
+
+    return user_cluster_preds
+
+def save_cluster_user_dict(user_cluster_preds):
+
+    cluster_user_df = (user_cluster_preds
+                        .groupby(["cluster"])
+                        ["user"]
+                        .unique()
+                        .reset_index()
+                        .assign(user = lambda x: x["user"].tolist()))
+    
+    cluster_user_dict = {i: row["user"].tolist() for i,row in cluster_user_df.iterrows()}
+    with open(DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl", "wb") as fp:
+        pkl.dump(cluster_user_dict, fp)
+
+    
+
+def save_cluster_ratings(ratings_long, user_cluster_preds):
+
+    ratings_clusters = (ratings_long
+        .merge(user_cluster_preds, on='user', how='left')
+        .groupby(["cluster", "item"])
+        .agg(rating = ('rating', 'mean'))
+        .reset_index()
+    )
+    ratings_clusters.columns = ["user", "item", "rating"]
+    ratings_clusters.to_parquet(DATA_PREPROCESSED_DIR / "train_cluster_ratings.pq")
 
 
 
