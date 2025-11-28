@@ -39,6 +39,8 @@ PRODUCTS_PATH_CSV = DATA_RAW_DIR / "products.csv"
 
 UNIQUE_USERS_PATH = DATA_PREPROCESSED_DIR / "unique_users.pq"
 AISLE_TOP_PRODUCTS_PATH = DATA_PREPROCESSED_DIR / "aisle_top_products.pq"
+CLUSTER_USER_DICT_PATH = DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl"
+TRAIN_CLUSTER_RATINGS_PATH = DATA_PREPROCESSED_DIR / "train_cluster_ratings.pq"
 
 CF_ALL_USERS_ALL_ITEMS_EXP_PATH = OUTPUTS_PATH / "cf_all_users_all_items_experiment_results.csv"
 CF_ALL_USERS_AISLES_EXP_PATH = OUTPUTS_PATH / "cf_all_users_aisles_experiment_results.csv"
