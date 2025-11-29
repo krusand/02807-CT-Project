@@ -47,7 +47,7 @@ CF_ALL_USERS_AISLES_EXP_PATH = OUTPUTS_PATH / "cf_all_users_aisles_experiment_re
 CF_USER_CLUSTERS_ALL_ITEMS_EXP_PATH = OUTPUTS_PATH / "cf_user_clusters_all_items_experiment_results.csv"
 CF_USER_CLUSTERS_AISLES_EXP_PATH = OUTPUTS_PATH / "cf_user_clusters_aisles_experiment_results.csv"
 MBA_EXP_PATH = OUTPUTS_PATH / "mba_experiment_results.csv"
-
+CLUSTER_EXP_PATH = OUTPUTS_PATH / "cluster_experiment_results.pkl"
 
 logging.basicConfig(
     level=logging.INFO,
