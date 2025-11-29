@@ -375,7 +375,7 @@ def assign_cluster_to_users(y_pred, ratings_long):
 
     return user_cluster_preds
 
-def save_cluster_user_dict(user_cluster_preds):
+def save_cluster_user_dict(user_cluster_preds, save=True):
 
     cluster_user_df = (user_cluster_preds
                         .groupby(["cluster"])
@@ -385,12 +385,15 @@ def save_cluster_user_dict(user_cluster_preds):
                         .assign(user = lambda x: x["user"].tolist()))
     
     cluster_user_dict = {i: row["user"].tolist() for i,row in cluster_user_df.iterrows()}
-    with open(DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl", "wb") as fp:
-        pkl.dump(cluster_user_dict, fp)
+
+    if save:
+        with open(DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl", "wb") as fp:
+            pkl.dump(cluster_user_dict, fp)
+    else:
+        return cluster_user_dict
 
     
-
-def save_cluster_ratings(ratings_long, user_cluster_preds):
+def save_cluster_ratings(ratings_long, user_cluster_preds, save=True):
 
     ratings_clusters = (ratings_long
         .merge(user_cluster_preds, on='user', how='left')
@@ -399,7 +402,10 @@ def save_cluster_ratings(ratings_long, user_cluster_preds):
         .reset_index()
     )
     ratings_clusters.columns = ["user", "item", "rating"]
-    ratings_clusters.to_parquet(DATA_PREPROCESSED_DIR / "train_cluster_ratings.pq")
+    if save:
+        ratings_clusters.to_parquet(DATA_PREPROCESSED_DIR / "train_cluster_ratings.pq")
+    else: 
+        return ratings_clusters
 
 
 
