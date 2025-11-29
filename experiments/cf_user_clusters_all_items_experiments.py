@@ -103,9 +103,9 @@ def main():
 
         # writing row to csv
         if bias_value:
-            row = [n_features, damping, reg, bias_value, avg_hr, avg_ndcg]
+            row = [n_clusters, n_features, damping, reg, bias_value, avg_hr, avg_ndcg]
         else:
-            row = [n_features, "-", reg, bias_value, avg_hr, avg_ndcg]
+            row = [n_clusters, n_features, "-", reg, bias_value, avg_hr, avg_ndcg]
         with open(CF_USER_CLUSTERS_ALL_ITEMS_EXP_PATH, mode="a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
