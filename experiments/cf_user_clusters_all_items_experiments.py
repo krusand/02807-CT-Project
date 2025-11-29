@@ -40,6 +40,7 @@ def main():
     print(f"Values for reg to test: {reg_values}", flush=True)
     print(f"Bias: {bias_value}", flush=True)
     print(f"Values for damping to test: {damping_values}", flush=True)
+    print(f"Values for n_clusters to test: {n_clusters_values}", flush=True)
 
     # loading ratings and products for validation set
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
@@ -57,10 +58,8 @@ def main():
         logging.info("Started clustering users")
         y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=n_clusters)
         user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
-        save_cluster_user_dict(user_cluster_preds=user_cluster_preds)
-        save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds)
-        train_ratings = pd.read_parquet(TRAIN_CLUSTER_RATINGS_PATH) 
-        cluster_user_dict = pd.read_pickle(CLUSTER_USER_DICT_PATH)
+        cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
+        train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
         logging.info("Finished clustering users")
 
         if bias_value:
