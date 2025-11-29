@@ -40,6 +40,7 @@ def main():
     print(f"Values for reg to test: {reg_values}", flush=True)
     print(f"Bias: {bias_value}", flush=True)
     print(f"Values for damping to test: {damping_values}", flush=True)
+    print(f"Values for n_clusters to test: {n_clusters_values}", flush=True)
 
     # loading ratings and products for validation set
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
@@ -85,6 +86,8 @@ def main():
                                              reg=reg,
                                              damping=damping,
                                              bias=bias_value,
+                                             aisles=True,
+                                             aisle_dict=aisle_dict,
                                              user_clusters=True,
                                              cluster_user_dict=cluster_user_dict)
 
@@ -95,6 +98,8 @@ def main():
                                              rating_df_val=val_ratings, 
                                              reg=reg,
                                              bias=bias_value,
+                                             aisles=True,
+                                             aisle_dict=aisle_dict,
                                              user_clusters=True,
                                              cluster_user_dict=cluster_user_dict)
 
