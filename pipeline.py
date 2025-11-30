@@ -48,7 +48,13 @@ def get_pipeline_steps():
         #     "name": "Collaborative filtering",
         #     "script": "scripts/collaborative_filter.py",
         #     "description": "Runs collaborative filtering"
-        # }
+        # },
+
+        # { # MBA RECOMMENDATIONS
+        #     "name": "MBA Recommendations",
+        #     "script": "scripts/mba_recs.py",
+        #     "description": "Runs market basket analysis recommendations"
+        # },
     ]
     
     return pipeline_steps
