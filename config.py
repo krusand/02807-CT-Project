@@ -49,6 +49,8 @@ CF_USER_CLUSTERS_AISLES_EXP_PATH = OUTPUTS_PATH / "cf_user_clusters_aisles_exper
 MBA_EXP_PATH = OUTPUTS_PATH / "mba_experiment_results.csv"
 CLUSTER_EXP_PATH = OUTPUTS_PATH / "cluster_experiment_results.pkl"
 
+RESULTS_PATH = PROJ_ROOT / "results/results.csv"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(module)s.%(funcName)s:%(lineno)d - %(message)s\n"
