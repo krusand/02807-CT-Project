@@ -1,11 +1,17 @@
 from collections import defaultdict
-from typing import Iterable, Tuple
+import pickle as pkl
+from typing import Tuple
 
 from lenskit.algorithms.als import BiasedMF
 import numpy as np
 import pandas as pd
+from pandas.api.types import CategoricalDtype
+import scipy.sparse as sparse
+from sklearn.cluster import KMeans
+from sklearn.decomposition import TruncatedSVD
 
 from config import *
+from sklearn.base import BaseEstimator, TransformerMixin
 
 import psutil
 
@@ -85,7 +91,31 @@ def convert_aisle_recs(recs_dict: dict, aisle_top_products: dict) -> dict:
         product_recs_dict[user] = prod_recs
     
     return product_recs_dict
-        
+
+
+def convert_user_cluster_recs(cluster_recs_dict: dict, cluster_user_dict: dict) -> dict:
+    """
+    Convert recommendations for each user cluster into recommendations for each user.
+
+    Parameters:
+    - cluster_recs_dict:    Recommendations for each user cluster.
+    - cluster_user_dict:    Dictionary whose keys are cluster IDs and values are list of user IDs belonging to that cluster.
+
+    Returns:
+    - user_recs_dict:       Recommendations for each user. 
+    """
+    user_recs_dict = {}
+
+    for cluster_id, recs in cluster_recs_dict.items():
+        # identify users in cluster
+        user_list = cluster_user_dict[cluster_id]
+
+        for user in user_list:
+            # recommend recs to all users in cluster
+            user_recs_dict[user] = recs
+
+    return user_recs_dict
+
 
 def construct_test_product_dict(mode: str) -> dict:
     """
@@ -172,7 +202,10 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
                 dcg += rating / np.log2(j + 2)
         
         # computing ndcg
-        ndcg = dcg / dcg_star
+        if dcg_star == 0:
+            ndcg = 0
+        else:
+            ndcg = dcg / dcg_star
 
         # appending ndcg for the user to the eval_dict
         eval_dict[user][f"ndcg@{n_recs}"] = ndcg
@@ -193,6 +226,7 @@ def get_cf_scores(features: int,
                   aisles=False,
                   aisle_dict=None,
                   user_clusters=False,
+                  cluster_user_dict=None,
                   ) -> Tuple[dict, BiasedMF]:
     """
     Function to train a BiasedMF model from lenskit and generate predicted scores for each user and item. 
@@ -271,9 +305,16 @@ def get_cf_scores(features: int,
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
 
         # extract recommendations from pred_ratings
-        if aisles:
+        if aisles and user_clusters:
+            aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
+            cluster_recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+            recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
+        elif aisles:
             aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
             recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+        elif user_clusters:
+            cluster_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+            recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
         else: 
             recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
         logging.info(f"Memory used: {process.memory_info().rss * 1e-9} GB")
@@ -298,3 +339,111 @@ def get_cf_scores(features: int,
     return prev_ratings, mf
 
 
+def convert_to_user_term_matrix(ratings):
+    """Converts from long to wide in CSR format. Input must have column names ['user', 'item', 'rating']"""
+    users = ratings["user"].unique()
+    item = ratings["item"].unique()
+    shape = (len(users), len(item))
+
+    # Create indices for users and movies
+    user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
+    product_cat = CategoricalDtype(categories=sorted(item), ordered=True)
+    user_index = ratings["user"].astype(user_cat).cat.codes
+    product_index = ratings["item"].astype(product_cat).cat.codes
+
+    # Conversion via COO matrix
+    coo = sparse.coo_matrix((ratings["rating"], (user_index, product_index)), shape=shape)
+    ratings_matrix = coo.tocsr()
+    return user_index, product_index, ratings_matrix
+
+def cluster_and_predict_users(ratings_matrix, n_clusters=50, n_representative_features=50):
+
+    svd = TruncatedSVD(n_components=n_representative_features)
+    X_svd = svd.fit_transform(ratings_matrix)
+
+    km = KMeans(n_clusters=n_clusters)
+    y_pred = km.fit_predict(X_svd)
+
+    return y_pred
+
+def assign_cluster_to_users(y_pred, ratings_long):
+
+    user_cluster_preds = (ratings_long[["user"]]
+                    .drop_duplicates()
+                    .assign(cluster=y_pred)
+    )
+
+    return user_cluster_preds
+
+def save_cluster_user_dict(user_cluster_preds, save=True):
+
+    cluster_user_df = (user_cluster_preds
+                        .groupby(["cluster"])
+                        ["user"]
+                        .unique()
+                        .reset_index()
+                        .assign(user = lambda x: x["user"].tolist()))
+    
+    cluster_user_dict = {i: row["user"].tolist() for i,row in cluster_user_df.iterrows()}
+
+    if save:
+        with open(DATA_PREPROCESSED_DIR / "cluster_user_dict.pkl", "wb") as fp:
+            pkl.dump(cluster_user_dict, fp)
+    else:
+        return cluster_user_dict
+
+    
+def save_cluster_ratings(ratings_long, user_cluster_preds, save=True):
+
+    ratings_clusters = (ratings_long
+        .merge(user_cluster_preds, on='user', how='left')
+        .groupby(["cluster", "item"])
+        .agg(rating = ('rating', 'mean'))
+        .reset_index()
+    )
+    ratings_clusters.columns = ["user", "item", "rating"]
+    if save:
+        ratings_clusters.to_parquet(DATA_PREPROCESSED_DIR / "train_cluster_ratings.pq")
+    else: 
+        return ratings_clusters
+
+
+
+class DOWEncoder(BaseEstimator, TransformerMixin):
+    """Encodes an int denoting DOW (1-7), to polar coordinates, allowing cyclic features representation"""
+    def __init__(self, return_pd = True) -> pd.DataFrame:
+        self.return_pd = return_pd
+        return
+
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        def encode_day(day):
+            rad = 2*np.pi*day / 7
+            return np.round(np.cos(rad),3), np.round(np.sin(rad),3)
+        X["X_day_dir"], X["Y_day_dir"] = zip(*X["order_dow"].apply(encode_day))
+        X = X.drop("order_dow",axis=1)
+        if self.return_pd:
+            return X.copy()
+        return X
+
+
+class HourOfDayEncoder(BaseEstimator, TransformerMixin):
+    """Encodes an int denoting hour (0-24), to polar coordinates, allowing cyclic features representation"""
+    def __init__(self, return_pd = True):
+        self.return_pd = return_pd
+        return
+
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X) -> pd.DataFrame:
+        def encode_hour(HourOfDay: int):
+            rad = 2*np.pi*HourOfDay / 24
+            return np.round(np.cos(rad),3), np.round(np.sin(rad),3)
+        X["X_hour_dir"], X["Y_hour_dir"] = zip(*X["order_hour_of_day"].apply(encode_hour))
+        X = X.drop("order_hour_of_day",axis=1)
+        if self.return_pd:
+            return X.copy()
+        return X
