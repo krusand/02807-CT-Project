@@ -14,6 +14,7 @@ from utils import *
 def main():
     # loading ratings for each split
     train_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 
+    train_ratings_aisles = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_aisle_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq") 
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     test_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "test_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     
@@ -65,7 +66,7 @@ def main():
     ### CF - ALL USERS AISLES ###
     logging.info("Starting CF fit - all users aisles")
     pred_ratings, mf = get_cf_scores(features=500, 
-                                     rating_df_train=train_ratings, 
+                                     rating_df_train=train_ratings_aisles, 
                                      rating_df_val=val_ratings, 
                                      reg=0.0001,
                                      damping=5,
