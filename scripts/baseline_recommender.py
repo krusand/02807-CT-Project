@@ -1,3 +1,4 @@
+import csv
 import os
 import sys 
 
@@ -44,6 +45,12 @@ def main():
 
     logging.info(f"The average hit-rate across all users is {avg_hr:.4f}")
     logging.info(f"The average ndcg@{top_n} across all users is {avg_ndcg:.4f}")
+
+    # saving results to results.csv
+    row = ["baseline", top_n, avg_hr, avg_ndcg]
+    with open(RESULTS_PATH, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
 
 if __name__ == "__main__":
     main()
