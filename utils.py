@@ -1,14 +1,19 @@
 from collections import defaultdict
 import pickle as pkl
 from typing import Tuple
+import warnings
 
 from lenskit.algorithms.als import BiasedMF
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 import scipy.sparse as sparse
+from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.utils.validation import check_is_fitted
 
 from config import *
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -339,6 +344,118 @@ def get_cf_scores(features: int,
     return prev_ratings, mf
 
 
+class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
+    def __init__(self, n_clusters=3, init_method='kmeans++', max_iter=200):
+        self.n_clusters = n_clusters
+        self.init_method = init_method
+        self.max_iter = max_iter
+        self._n_features_in = None
+
+
+    def _init_clusters(self, size):
+        return np.random.randint(low=0, high=self.n_clusters, size=size)
+    
+
+    def _init_centroids(self, X):
+        if self.init_method == 'random':
+            print("Doing random initialisation of cluster centroids")
+            init_vals = X[np.random.choice(X.shape[0], size=self.n_clusters, replace=False)]
+        elif self.init_method == 'kmeans++':
+            print("Doing kmeans++ initialisation of cluster centroids")
+            # https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf
+            centroids = [X[np.random.choice(X.shape[0], size=1, replace=False)]]
+            n_clusters_picked = 1
+
+            while n_clusters_picked < self.n_clusters:
+                print(100*n_clusters_picked / self.n_clusters)
+                distances_arr_fast = euclidean_distances(X, np.concatenate(centroids))**2
+                minimum_dist_idx = np.argmin(distances_arr_fast, axis=1)
+
+                X_shortest = distances_arr_fast[np.arange(minimum_dist_idx.shape[0]), minimum_dist_idx]
+                sample_weight = (X_shortest) / np.sum(X_shortest)
+                centroids.append(X[np.random.choice(X.shape[0], size=1, p=sample_weight)])
+                n_clusters_picked += 1
+            init_vals = np.concatenate(centroids, axis=0)
+
+        return init_vals
+    
+
+    def _calculate_cluster_centroid(self, X,y):
+        centroids = []
+
+        for i in np.unique(y):
+            X_gp = X[np.where(y == i)[0]]
+            centroids.append(X_gp.mean(axis=0))
+
+        return np.stack(centroids)
+    
+
+    def _predict_cluster(self, X, centroids):      
+        distances_arr_fast = euclidean_distances(X, centroids)**2
+        minimum_dist_idx = np.argmin(distances_arr_fast, axis=1)
+        
+        return minimum_dist_idx
+    
+
+    def _plot_clusters(self, X, y, centroids):
+        cmap = plt.get_cmap("tab20")
+
+        for i in np.unique(y):
+            X_gp = X[np.where(y == i)[0]]    
+            plt.scatter(X_gp[:,0], X_gp[:,1], c=cmap(i))
+        
+        for centroid in centroids:
+            plt.scatter(centroid[0], centroid[1], c='black')
+        plt.show()
+
+
+    def fit(self, X):
+        assert self.n_clusters <= X.shape[0], f"Number of clusters {self.n_clusters} must be less than number of data points {X.shape[0]}"
+        if (self.n_clusters == X.shape[0]): warnings.warn(f"The same number of clusters {self.n_clusters} as data points are used {X.shape[0]}")
+
+        y_prev = self._init_clusters(X.shape[0])
+        centroids = self._init_centroids(X)
+
+        y_new = self._predict_cluster(X, centroids)
+
+        for i in range(self.max_iter):
+            print(i, self.max_iter)
+            if i == self.max_iter-1: warnings.warn(f"Reached max iterations={self.max_iter}, increase max_iter parameter")
+            if (y_prev == y_new).all(): 
+                print("stationary clusters, breaking")
+                break
+
+            y_prev = y_new
+            centroids = self._calculate_cluster_centroid(X, y_new)
+            y_new = self._predict_cluster(X, centroids)
+            # self._plot_clusters(X, y_new, centroids)
+
+            print(100*np.sum(y_prev == y_new).sum() / y_prev.shape[0])
+
+        self.centroids = centroids
+        self._n_features_in = X.shape[1]
+        self._is_fitted = True
+        
+    
+    def predict(self, X):
+        check_is_fitted(self)
+        assert X.shape[1] == self._n_features_in, f"Number of features in {self._n_features_in} must be the same as number of prediction features {X.shape[1]}"
+
+        return self._predict_cluster(X, self.centroids)
+
+
+    def fit_predict(self, X):
+        self.fit(X)
+        return self.predict(X)
+
+
+    def __sklearn_is_fitted__(self):
+        """
+        Check fitted status and return a Boolean value.
+        """
+        return hasattr(self, "_is_fitted") and self._is_fitted
+    
+
 def convert_to_user_term_matrix(ratings):
     """Converts from long to wide in CSR format. Input must have column names ['user', 'item', 'rating']"""
     users = ratings["user"].unique()
@@ -356,15 +473,17 @@ def convert_to_user_term_matrix(ratings):
     ratings_matrix = coo.tocsr()
     return user_index, product_index, ratings_matrix
 
+
 def cluster_and_predict_users(ratings_matrix, n_clusters=50, n_representative_features=50):
 
     svd = TruncatedSVD(n_components=n_representative_features)
     X_svd = svd.fit_transform(ratings_matrix)
 
-    km = KMeans(n_clusters=n_clusters)
+    km = KMeans_self_implemented(n_clusters=n_clusters)
     y_pred = km.fit_predict(X_svd)
 
     return y_pred
+
 
 def assign_cluster_to_users(y_pred, ratings_long):
 
@@ -374,6 +493,7 @@ def assign_cluster_to_users(y_pred, ratings_long):
     )
 
     return user_cluster_preds
+
 
 def save_cluster_user_dict(user_cluster_preds, save=True):
 
