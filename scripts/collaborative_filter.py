@@ -26,6 +26,10 @@ def main():
                   .to_dict()
                   )
 
+    # preparing ratings for cluster ratings
+    ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
+    _, _, ratings_matrix = convert_to_user_term_matrix(ratings_long)
+
     # number of recommendations to generate for each user
     n_recs = 6
 
@@ -63,6 +67,7 @@ def main():
         writer = csv.writer(file)
         writer.writerow(row)
 
+
     ### CF - ALL USERS AISLES ###
     logging.info("Starting CF fit - all users aisles")
     pred_ratings, mf = get_cf_scores(features=500, 
@@ -84,7 +89,7 @@ def main():
 
     logging.info("Saved recs")
 
-    logging.info("Evaluating performance of CF recommender (all items, all users)")
+    logging.info("Evaluating performance of CF recommender (all users, aisles)")
     test_products = construct_test_product_dict(mode="test")
     eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
     
@@ -102,9 +107,96 @@ def main():
     
 
     ### CF - USER CLUSTERS ALL ITEMS ###
+    logging.info("Started clustering users")
+    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=100)
+    user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
+    cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
+    train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
+    logging.info("Finished clustering users")
+
+    logging.info("Starting CF fit - user clusters all items")
+    pred_ratings, mf = get_cf_scores(features=500, 
+                                     rating_df_train=train_ratings, 
+                                     rating_df_val=val_ratings, 
+                                     reg=0.0001,
+                                     damping=5,
+                                     bias=True,
+                                     user_clusters=True,
+                                     cluster_user_dict=cluster_user_dict)
+    logging.info("Ended CF fit - user clusters all items")
+
+    logging.info("Starting recs")
+    cluster_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs)
+    recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
+    logging.info("Ending recs")
+    with open(DATA_PREPROCESSED_DIR / "cf_user_clusters_all_items_recs.pkl", 'wb') as fp:
+        pkl.dump(recs_dict,file=fp)
+
+    logging.info("Saved recs")
+
+    logging.info("Evaluating performance of CF recommender (user clusters, all items)")
+    test_products = construct_test_product_dict(mode="test")
+    eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
+    
+    # computing average hit-rate and ndcg
+    avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
+    avg_ndcg = np.mean([metric_dict[f"ndcg@{n_recs}"] for metric_dict in eval_dict.values()])
+
+    logging.info(f"The average hit-rate on the test set across all users is {avg_hr:.6f}")
+    logging.info(f"The average ndcg@{n_recs} on the test set across all users is {avg_ndcg:.6f}")
+
+    row = ["cf_user_clusters_all_items", n_recs, avg_hr, avg_ndcg]
+    with open(RESULTS_PATH, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
 
 
     ### CF - USER CLUSTERS AISLES ### 
+    logging.info("Started clustering users")
+    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=100)
+    user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
+    cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
+    train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
+    logging.info("Finished clustering users")
+
+    logging.info("Starting CF fit - user clusters aisles")
+    pred_ratings, mf = get_cf_scores(features=500, 
+                                     rating_df_train=train_ratings, 
+                                     rating_df_val=val_ratings, 
+                                     reg=0.0001,
+                                     damping=5,
+                                     bias=True,
+                                     aisles=True,
+                                     aisle_dict=aisle_dict,
+                                     user_clusters=True,
+                                     cluster_user_dict=cluster_user_dict)
+    logging.info("Ended CF fit - user clusters aisles")
+
+    logging.info("Starting recs")
+    aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
+    cluster_recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
+    recs_dict = convert_user_cluster_recs(cluster_recs_dict=cluster_recs_dict, cluster_user_dict=cluster_user_dict)
+    logging.info("Ending recs")
+    with open(DATA_PREPROCESSED_DIR / "cf_user_clusters_aisles_recs.pkl", 'wb') as fp:
+        pkl.dump(recs_dict,file=fp)
+
+    logging.info("Saved recs")
+
+    logging.info("Evaluating performance of CF recommender (user clusters, aisles)")
+    test_products = construct_test_product_dict(mode="test")
+    eval_dict = eval_recs(recs_dict=recs_dict, rating_df=test_ratings, test_products=test_products)
+    
+    # computing average hit-rate and ndcg
+    avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
+    avg_ndcg = np.mean([metric_dict[f"ndcg@{n_recs}"] for metric_dict in eval_dict.values()])
+
+    logging.info(f"The average hit-rate on the test set across all users is {avg_hr:.6f}")
+    logging.info(f"The average ndcg@{n_recs} on the test set across all users is {avg_ndcg:.6f}")
+
+    row = ["cf_user_clusters_aisles", n_recs, avg_hr, avg_ndcg]
+    with open(RESULTS_PATH, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
 
 if __name__ == "__main__":
     main()
