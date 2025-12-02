@@ -50,10 +50,10 @@ def get_pipeline_steps():
         #     "description": "Runs collaborative filtering"
         # },
 
-        # { # MBA RECOMMENDATIONS
-        #     "name": "MBA Recommendations",
-        #     "script": "scripts/mba_recs.py",
-        #     "description": "Runs market basket analysis recommendations"
+        # { # APRIORI RECOMMENDATIONS
+        #     "name": "APRIORI Recommendations",
+        #     "script": "scripts/apriori.py",
+        #     "description": "Runs apriori algorithm to generate recommendations"
         # },
     ]
     

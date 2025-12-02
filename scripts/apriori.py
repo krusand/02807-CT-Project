@@ -14,10 +14,12 @@ def main():
     np.random.seed(SEED)
 
     # loading val ratings and products for evaluation 
+    logging.info("Loading validation data")
     val_ratings = pd.read_parquet(DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     val_products = construct_test_product_dict(mode="val")
 
     # 1) Load & prepare data from data/
+    logging.info("Loading and preparing data")
     data = load_data()
     all_user_ids = data["user_id"].dropna().drop_duplicates()
     
@@ -49,6 +51,7 @@ def main():
     )
 
     # 4) Build user_id -> [product_id,...] dict (6 per user) and save it
+    logging.info("Building dictionary containing recommendations for each user")
     user_recs_dict = build_user_recs_dict(
         multi_recs=multi_recs,
         data=data,
@@ -56,6 +59,7 @@ def main():
     )
     
     # 5) Evaluating the recommendations
+    logging.info("Evaluating the recommendations")
     eval_dict = eval_recs(recs_dict=user_recs_dict, rating_df=val_ratings, test_products=val_products)
     avg_hr = np.mean([metric_dict["hit-rate"] for metric_dict in eval_dict.values()])
     avg_ndcg = np.mean([metric_dict[f"ndcg@6"] for metric_dict in eval_dict.values()])
