@@ -30,6 +30,9 @@ def main():
     ratings_long = pd.read_parquet(DATA_PREPROCESSED_DIR / "train_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq")
     _, _, ratings_matrix = convert_to_user_term_matrix(ratings_long)
 
+    # loading product data containing aisle information
+    products_df = pd.read_csv(PRODUCTS_PATH_CSV)
+
     # number of recommendations to generate for each user
     n_recs = 6
 
@@ -68,7 +71,7 @@ def main():
         writer.writerow(row)
 
 
-    # ### CF - ALL USERS AISLES ###
+    ### CF - ALL USERS AISLES ###
     logging.info("Starting CF fit - all users aisles")
     pred_ratings, mf = get_cf_scores(features=500, 
                                      rating_df_train=train_ratings_aisles, 
@@ -106,7 +109,7 @@ def main():
         writer.writerow(row)
     
 
-    # ### CF - USER CLUSTERS ALL ITEMS ###
+    ### CF - USER CLUSTERS ALL ITEMS ###
     logging.info("Started clustering users")
     y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=150)
     user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
@@ -155,8 +158,13 @@ def main():
     y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=150)
     user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
     cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
-    train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
+    train_cluster_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
     logging.info("Finished clustering users")
+
+    logging.info("Converting product ratings into aisle ratings")
+    joined_df = train_cluster_ratings.merge(products_df, how="left", left_on="item", right_on="product_id")
+    grp_df = joined_df.groupby(["user", "aisle_id"])["rating"].mean().reset_index()
+    train_ratings = grp_df.rename(columns={"aisle_id": "item"})
 
     logging.info("Starting CF fit - user clusters aisles")
     pred_ratings, mf = get_cf_scores(features=2000, 
@@ -170,6 +178,7 @@ def main():
                                      cluster_user_dict=cluster_user_dict)
     logging.info("Ended CF fit - user clusters aisles")
 
+    
     logging.info("Starting recs")
     aisle_recs_dict = get_recs(pred_ratings=pred_ratings, mf=mf, n_recs=n_recs, d_hondts=True)
     cluster_recs_dict = convert_aisle_recs(recs_dict=aisle_recs_dict, aisle_top_products=aisle_dict)
