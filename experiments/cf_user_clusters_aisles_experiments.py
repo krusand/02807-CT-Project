@@ -67,10 +67,8 @@ def main():
         logging.info("Started clustering users")
         y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=n_clusters)
         user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
-        save_cluster_user_dict(user_cluster_preds=user_cluster_preds)
-        save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds)
-        train_cluster_ratings = pd.read_parquet(TRAIN_CLUSTER_RATINGS_PATH) 
-        cluster_user_dict = pd.read_pickle(CLUSTER_USER_DICT_PATH)
+        cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
+        train_cluster_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
         logging.info("Finished clustering users")
 
         logging.info("Converting product ratings into aisle ratings")
