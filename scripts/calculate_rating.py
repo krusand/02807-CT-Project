@@ -54,11 +54,6 @@ def calculate_user_product_recency(merged_df: pd.DataFrame, lam: float = 0.0015)
     # exponential weight based on recency
     merged_df['weight'] = np.exp(-lam * merged_df['age_days'])
 
-    sample_user_id = merged_df['user_id'].iloc[0]
-    sample = (merged_df
-              .loc[merged_df['user_id'] == sample_user_id
-                   , ['user_id', 'order_number', 'days_since_prior_order', 'cum_days', 'total_days', 'age_days', 'weight']
-                   ])
     
     freq = (
         merged_df.groupby(['user_id', 'product_id'])['weight']
