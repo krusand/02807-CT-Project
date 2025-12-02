@@ -345,14 +345,16 @@ def get_cf_scores(features: int,
 
 
 class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
-    def __init__(self, n_clusters=3, init_method='kmeans++', max_iter=200):
+    def __init__(self, n_clusters=3, init_method='kmeans++', max_iter=200, seed=51225):
         self.n_clusters = n_clusters
         self.init_method = init_method
         self.max_iter = max_iter
         self._n_features_in = None
+        self.seed = seed
 
 
     def _init_clusters(self, size):
+        np.random.seed(self.seed)
         return np.random.randint(low=0, high=self.n_clusters, size=size)
     
 
@@ -361,6 +363,7 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
             print("Doing random initialisation of cluster centroids")
             init_vals = X[np.random.choice(X.shape[0], size=self.n_clusters, replace=False)]
         elif self.init_method == 'kmeans++':
+            np.random.seed(self.seed)
             print("Doing kmeans++ initialisation of cluster centroids")
             # https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf
             centroids = [X[np.random.choice(X.shape[0], size=1, replace=False)]]

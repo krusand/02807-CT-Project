@@ -10,6 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 from utils import *
 
+# seed for reproducibility
+np.random.seed(51225)
 
 def main():
     # loading ratings for each split
@@ -71,7 +73,7 @@ def main():
         writer.writerow(row)
 
 
-    ### CF - ALL USERS AISLES ###
+    # ### CF - ALL USERS AISLES ###
     logging.info("Starting CF fit - all users aisles")
     pred_ratings, mf = get_cf_scores(features=500, 
                                      rating_df_train=train_ratings_aisles, 
