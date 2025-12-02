@@ -68,7 +68,7 @@ def main():
         writer.writerow(row)
 
 
-    ### CF - ALL USERS AISLES ###
+    # ### CF - ALL USERS AISLES ###
     logging.info("Starting CF fit - all users aisles")
     pred_ratings, mf = get_cf_scores(features=500, 
                                      rating_df_train=train_ratings_aisles, 
@@ -106,21 +106,20 @@ def main():
         writer.writerow(row)
     
 
-    ### CF - USER CLUSTERS ALL ITEMS ###
+    # ### CF - USER CLUSTERS ALL ITEMS ###
     logging.info("Started clustering users")
-    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=100)
+    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=150)
     user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
     cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
     train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
     logging.info("Finished clustering users")
 
     logging.info("Starting CF fit - user clusters all items")
-    pred_ratings, mf = get_cf_scores(features=500, 
+    pred_ratings, mf = get_cf_scores(features=1500, 
                                      rating_df_train=train_ratings, 
                                      rating_df_val=val_ratings, 
-                                     reg=0.0001,
-                                     damping=5,
-                                     bias=True,
+                                     reg=0.001,
+                                     bias=False,
                                      user_clusters=True,
                                      cluster_user_dict=cluster_user_dict)
     logging.info("Ended CF fit - user clusters all items")
@@ -153,19 +152,18 @@ def main():
 
     ### CF - USER CLUSTERS AISLES ### 
     logging.info("Started clustering users")
-    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=100)
+    y_pred = cluster_and_predict_users(ratings_matrix=ratings_matrix, n_clusters=150)
     user_cluster_preds = assign_cluster_to_users(y_pred=y_pred, ratings_long=ratings_long)
     cluster_user_dict = save_cluster_user_dict(user_cluster_preds=user_cluster_preds, save=False)
     train_ratings = save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_preds, save=False)
     logging.info("Finished clustering users")
 
     logging.info("Starting CF fit - user clusters aisles")
-    pred_ratings, mf = get_cf_scores(features=500, 
+    pred_ratings, mf = get_cf_scores(features=2000, 
                                      rating_df_train=train_ratings, 
                                      rating_df_val=val_ratings, 
                                      reg=0.0001,
-                                     damping=5,
-                                     bias=True,
+                                     bias=False,
                                      aisles=True,
                                      aisle_dict=aisle_dict,
                                      user_clusters=True,
