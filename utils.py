@@ -572,7 +572,7 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
     
     def predict(self, X):
         """
-        Sklearn predict methods which calls _predict_cluster to assign clusters
+        Sklearn predict method which calls _predict_cluster to assign clusters
         to data points provided in X 
 
         Parameters
@@ -586,6 +586,23 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
         check_is_fitted(self)
         assert X.shape[1] == self._n_features_in, f"Number of features in {self._n_features_in} must be the same as number of prediction features {X.shape[1]}"
         y = self._predict_cluster(X, self.centroids)
+        return y
+
+    def fit_predict(self, X):
+        """
+        Sklearn fit_predict which calls fit and then predict
+
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features)
+        
+        Returns
+        -------
+        y : {array-like} of shape (n_samples, ). New predictions.
+        """
+        
+        self.fit(X)
+        y = self.predict(X)
         return y
 
     def __sklearn_is_fitted__(self):
