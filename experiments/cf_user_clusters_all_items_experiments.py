@@ -13,6 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
 from utils import *
 
+# seed for reproducibility
+np.random.seed(51225)
 
 def main():
     # argument parser for input parameters
