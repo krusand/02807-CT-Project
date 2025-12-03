@@ -344,33 +344,110 @@ def get_cf_scores(features: int,
     return prev_ratings, mf
 
 
+
 class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
+    """
+        KMeans clustering using Lloyd's algoritm. 
+
+        Parameters
+        ----------
+        n_clusters : {int} The number of clusters KMeans should find.
+
+        init_method : {str} 
+        The centroid initialisation method to use.
+            'random' : picks {n_clusters} points randomly from X.
+            'kmeans++' : picks {n_clusters} points sequentially
+                         by weighted sampling according to
+                         squared euclidean distance from data
+                         point to cluster centroid
+        
+        max_iter : {int} The maximum amount of iterations to optimize.
+        
+        seed : {int} Control the seed to allow determinism of output
+
+        Returns
+        -------
+        None
+        """
     def __init__(self, n_clusters=3, init_method='kmeans++', max_iter=200, seed=51225):
+        """
+        Initialises KMeans clustering parameters
+
+        Parameters
+        ----------
+        n_clusters : {int} The number of clusters KMeans should find.
+
+        init_method : {str} 
+        The centroid initialisation method to use.
+            'random' : picks {n_clusters} points randomly from X.
+            'kmeans++' : picks {n_clusters} points sequentially
+                         by weighted sampling according to
+                         squared euclidean distance from data
+                         point to cluster centroid
+        
+        max_iter : {int} The maximum amount of iterations to optimize.
+
+        seed : {int} Control the seed to allow determinism of output
+
+        Returns
+        -------
+        None
+        """
         self.n_clusters = n_clusters
         self.init_method = init_method
         self.max_iter = max_iter
         self._n_features_in = None
         self.seed = seed
 
+    def _init_clusters(self, size: int):
+        """
+        Assigns initial random clusters for all observations in data set
 
-    def _init_clusters(self, size):
+        Parameters
+        ----------
+        size : {int} Number of samples to generate. 
+        
+        Returns
+        -------
+        y : {array-like} of shape (size, )
+        """
         np.random.seed(self.seed)
         return np.random.randint(low=0, high=self.n_clusters, size=size)
     
-
     def _init_centroids(self, X):
+        """
+        Initialises centroids using either 'random' or 'kmeans++'. 
+        
+        'random': Choses n_clusters random data points from X
+        'kmeans++': Sequentially picks n_clusters weighted random data points. 
+                    Reweighs after each iteration. Data points are weighted 
+                    according to their squared euclidean distance to the 
+                    closest centroid. A higher value means a higher probability
+                    of being chosen as the next cluster centroid.
+                    This allows for better initial clustering assignment, 
+                    lowering the occurences of getting stuck in local minima.
+
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples_X, n_features)
+            An array where each row is a sample and each column is a feature.
+        
+        Returns
+        -------
+        init_vals : {array-like} of shape (n_clusters, n_features)
+        """
+        np.random.seed(self.seed)
+
         if self.init_method == 'random':
             print("Doing random initialisation of cluster centroids")
             init_vals = X[np.random.choice(X.shape[0], size=self.n_clusters, replace=False)]
         elif self.init_method == 'kmeans++':
-            np.random.seed(self.seed)
             print("Doing kmeans++ initialisation of cluster centroids")
             # https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf
             centroids = [X[np.random.choice(X.shape[0], size=1, replace=False)]]
             n_clusters_picked = 1
 
             while n_clusters_picked < self.n_clusters:
-                print(100*n_clusters_picked / self.n_clusters)
                 distances_arr_fast = euclidean_distances(X, np.concatenate(centroids))**2
                 minimum_dist_idx = np.argmin(distances_arr_fast, axis=1)
 
@@ -379,28 +456,63 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
                 centroids.append(X[np.random.choice(X.shape[0], size=1, p=sample_weight)])
                 n_clusters_picked += 1
             init_vals = np.concatenate(centroids, axis=0)
-
         return init_vals
     
-
     def _calculate_cluster_centroid(self, X,y):
+        """
+        Calculates the cluster centroid for each cluster in y
+
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features). The data points
+        y : {array-like} of shape (n_samples, ). The previous cluster assignments.
+
+        Returns
+        -------
+        centroids : {array-like} of shape (n_clusters, ). The new cluster centroids. 
+        """
         centroids = []
 
         for i in np.unique(y):
             X_gp = X[np.where(y == i)[0]]
             centroids.append(X_gp.mean(axis=0))
-
-        return np.stack(centroids)
+        centroids = np.stack(centroids)
+        return centroids
     
-
-    def _predict_cluster(self, X, centroids):      
+    def _predict_cluster(self, X, centroids):    
+        """
+        Predicts new cluster assignment by picking for each point, which cluster,
+        the point has the smallest euclicean distance to.
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features). The data points.
+        centroids : {array-like} of shape (n_clusters, ). The centroids of each cluster.
+        Returns
+        -------
+        y_new : {array_like} of shape (n_clusters, ). The new cluster assignments
+        """  
         distances_arr_fast = euclidean_distances(X, centroids)**2
-        minimum_dist_idx = np.argmin(distances_arr_fast, axis=1)
+        y_new = np.argmin(distances_arr_fast, axis=1)
         
-        return minimum_dist_idx
+        return y_new
     
 
     def _plot_clusters(self, X, y, centroids):
+        """
+        Plots the clusters and their centroids. Can be used for debugging. 
+        Only plots the 2 first dimensions of X
+        
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features). If n_features
+            is larger than two, only the two first features are used
+        y : {array-like} of shape (n_samples, ). The cluster assignments
+        centroids : {array-like} of shape (n_clusters, ). The cluster centroid coordinates.
+
+        Returns
+        -------
+        None
+        """
         cmap = plt.get_cmap("tab20")
 
         for i in np.unique(y):
@@ -412,24 +524,42 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
         plt.show()
 
 
+
     def fit(self, X):
+        """
+        Sklearn fits the KMeans model using the parameters specified in init. 
+        Uses an iterative algorithm (Lloyd's algorithm).
+
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features)
+        
+        Returns
+        -------
+        None
+        """
         assert self.n_clusters <= X.shape[0], f"Number of clusters {self.n_clusters} must be less than number of data points {X.shape[0]}"
         if (self.n_clusters == X.shape[0]): warnings.warn(f"The same number of clusters {self.n_clusters} as data points are used {X.shape[0]}")
 
         y_prev = self._init_clusters(X.shape[0])
         centroids = self._init_centroids(X)
 
+        # assignment step
         y_new = self._predict_cluster(X, centroids)
 
-        for i in range(self.max_iter):
+        for i in range(self.max_iter): # Termination rule
             print(i, self.max_iter)
             if i == self.max_iter-1: warnings.warn(f"Reached max iterations={self.max_iter}, increase max_iter parameter")
-            if (y_prev == y_new).all(): 
+            if (y_prev == y_new).all(): # Termination rule
                 print("stationary clusters, breaking")
                 break
 
             y_prev = y_new
+
+            # Update step
             centroids = self._calculate_cluster_centroid(X, y_new)
+
+            # Assignment step
             y_new = self._predict_cluster(X, centroids)
             # self._plot_clusters(X, y_new, centroids)
 
@@ -441,23 +571,46 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
         
     
     def predict(self, X):
+        """
+        Sklearn predict method which calls _predict_cluster to assign clusters
+        to data points provided in X 
+
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features)
+        
+        Returns
+        -------
+        y : {array-like} of shape (n_samples, ). New predictions.
+        """
         check_is_fitted(self)
         assert X.shape[1] == self._n_features_in, f"Number of features in {self._n_features_in} must be the same as number of prediction features {X.shape[1]}"
-
-        return self._predict_cluster(X, self.centroids)
-
+        y = self._predict_cluster(X, self.centroids)
+        return y
 
     def fit_predict(self, X):
-        self.fit(X)
-        return self.predict(X)
+        """
+        Sklearn fit_predict which calls fit and then predict
 
+        Parameters
+        ----------
+        X : {array-like} of shape (n_samples, n_features)
+        
+        Returns
+        -------
+        y : {array-like} of shape (n_samples, ). New predictions.
+        """
+        
+        self.fit(X)
+        y = self.predict(X)
+        return y
 
     def __sklearn_is_fitted__(self):
         """
-        Check fitted status and return a Boolean value.
+        Method to check whether class has been fitted using .fit()
         """
         return hasattr(self, "_is_fitted") and self._is_fitted
-    
+
 
 def convert_to_user_term_matrix(ratings):
     """Converts from long to wide in CSR format. Input must have column names ['user', 'item', 'rating']"""
