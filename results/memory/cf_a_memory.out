@@ -1,0 +1,85 @@
+Parsing the input arguments.
+Values for n_features to test: [500]
+Values for reg to test: [0.0001]
+Bias: True
+Values for damping to test: [5.0]
+
+Testing combination: features=500, reg=0.0001, damping=5.0
+Epoch: 0
+Average hit-rate: 0.079749
+Average ndcg@6: 0.000657
+Epoch: 1
+Average hit-rate: 0.099540
+Average ndcg@6: 0.000593
+Epoch: 2
+Average hit-rate: 0.118957
+Average ndcg@6: 0.000522
+Epoch: 3
+Average hit-rate: 0.137278
+Average ndcg@6: 0.000436
+Average ndcg@6 (0.000436) is lower than the previous ndcg@6 (0.000522).
+Early stopping is triggered after 4 epochs
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 27258558: <cf_au_aisles> in cluster <dcc> Done
+
+Job <cf_au_aisles> was submitted from host <hpclogin1> by user <s254120> in cluster <dcc> at Wed Dec  3 07:24:47 2025
+Job was executed on host(s) <n-62-12-14>, in queue <milan>, as user <s254120> in cluster <dcc> at Wed Dec  3 07:24:49 2025
+</zhome/70/1/224436> was used as the home directory.
+</zhome/70/1/224436/02807-CT-Project> was used as the working directory.
+Started at Wed Dec  3 07:24:49 2025
+Terminated at Wed Dec  3 07:29:33 2025
+Results reported at Wed Dec  3 07:29:33 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -J cf_au_aisles
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
+#BSUB -q milan
+
+#BSUB -R "rusage[mem=16GB]"
+
+### ------------- specify wall-clock time (max allowed is 12:00)---------------- 
+#BSUB -W 12:00
+
+#BSUB -o outputs/%J.out
+#BSUB -e outputs/%J.err
+
+source .venv/bin/activate
+#python pipeline.py
+python experiments/cf_all_users_aisles_experiments.py \
+  --n_features "500" \
+  --reg_vals "0.0001" \
+  --damping_vals "5" \
+  --bias 1 \
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   276.16 sec.
+    Max Memory :                                 2341 MB
+    Average Memory :                             1895.50 MB
+    Total Requested Memory :                     16384.00 MB
+    Delta Memory :                               14043.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                6
+    Run time :                                   304 sec.
+    Turnaround time :                            286 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/27258558.err> for stderr output of this job.
+

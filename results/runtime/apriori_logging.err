@@ -1,0 +1,16 @@
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+/zhome/70/1/224436/02807-CT-Project/.venv/lib/python3.10/site-packages/llvmlite/binding/ffi.py:175: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import resource_filename
+/appl9/python/3.10.13/lib/python3.10/site-packages/pkg_resources/__init__.py:2846: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('mpl_toolkits')`.
+Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+  declare_namespace(pkg)
+  0%|          | 0/1 [00:00<?, ?it/s]2025-12-03 07:29:43,620 - INFO - apriori_experiments.main:47 - Training Apriori model
+
+2025-12-03 07:30:40,401 - INFO - apriori_experiments.main:59 - Generating recommendations for all users
+
+100%|██████████| 1/1 [1:25:42<00:00, 5142.36s/it]100%|██████████| 1/1 [1:25:42<00:00, 5142.36s/it]

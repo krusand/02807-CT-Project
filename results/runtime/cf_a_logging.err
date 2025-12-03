@@ -1,0 +1,115 @@
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+2025-12-03 07:25:02,320 - INFO - cf_all_users_aisles_experiments.main:58 - Starting CF fit
+
+  0%|          | 0/1 [00:00<?, ?it/s]2025-12-03 07:25:06,045 - INFO - utils.get_cf_scores:280 - Epoch: 0
+
+2025-12-03 07:25:06,045 - INFO - utils.get_cf_scores:282 - Pre-Memory used: 0.717705216 GB
+
+2025-12-03 07:25:06,045 - INFO - als.fit_iters:402 - [None] fitting bias model
+
+2025-12-03 07:25:06,045 - INFO - bias.fit:75 - building bias model for 5266306 ratings
+
+2025-12-03 07:25:06,052 - INFO - bias.fit:77 - global mean: 0.071
+
+2025-12-03 07:25:06,183 - INFO - bias.fit:84 - computed means for 134 items
+
+2025-12-03 07:25:06,714 - INFO - bias.fit:95 - computed means for 206209 users
+
+2025-12-03 07:25:06,716 - INFO - als._initial_model:426 - [None] normalizing ratings
+
+2025-12-03 07:25:09,660 - INFO - als.fit_iters:407 - [None] training biased MF model with ALS for 500 features
+
+2025-12-03 07:25:36,806 - INFO - als._train_iters:481 - [None] finished epoch 0 (|ΔP|=821.861, |ΔQ|=0.896)
+
+2025-12-03 07:25:36,808 - INFO - utils.get_cf_scores:285 - Memory used: 1.75857664 GB
+
+2025-12-03 07:25:36,808 - INFO - utils.get_cf_scores:287 - Epoch train finished
+
+2025-12-03 07:25:36,808 - INFO - utils.get_cf_scores:290 - Memory used: 1.75857664 GB
+
+2025-12-03 07:25:36,808 - INFO - utils.get_cf_scores:294 - Memory used: 1.75857664 GB
+
+2025-12-03 07:25:36,808 - INFO - utils.get_cf_scores:296 - Calculating ratings
+
+2025-12-03 07:25:37,527 - INFO - utils.get_cf_scores:310 - Memory used: 1.9823370240000002 GB
+
+2025-12-03 07:25:58,965 - INFO - utils.get_cf_scores:325 - Memory used: 2.075271168 GB
+
+2025-12-03 07:26:08,945 - INFO - utils.get_cf_scores:280 - Epoch: 1
+
+2025-12-03 07:26:08,945 - INFO - utils.get_cf_scores:282 - Pre-Memory used: 2.230239232 GB
+
+2025-12-03 07:26:34,176 - INFO - als._train_iters:481 - [None] finished epoch 1 (|ΔP|=209.098, |ΔQ|=0.878)
+
+2025-12-03 07:26:34,179 - INFO - utils.get_cf_scores:285 - Memory used: 2.230239232 GB
+
+2025-12-03 07:26:34,179 - INFO - utils.get_cf_scores:287 - Epoch train finished
+
+2025-12-03 07:26:34,180 - INFO - utils.get_cf_scores:290 - Memory used: 2.230239232 GB
+
+2025-12-03 07:26:34,180 - INFO - utils.get_cf_scores:294 - Memory used: 2.230239232 GB
+
+2025-12-03 07:26:34,180 - INFO - utils.get_cf_scores:296 - Calculating ratings
+
+2025-12-03 07:26:34,864 - INFO - utils.get_cf_scores:310 - Memory used: 2.451296256 GB
+
+2025-12-03 07:26:56,551 - INFO - utils.get_cf_scores:325 - Memory used: 2.49532416 GB
+
+2025-12-03 07:27:06,506 - INFO - utils.get_cf_scores:280 - Epoch: 2
+
+2025-12-03 07:27:06,507 - INFO - utils.get_cf_scores:282 - Pre-Memory used: 2.295107584 GB
+
+2025-12-03 07:27:32,755 - INFO - als._train_iters:481 - [None] finished epoch 2 (|ΔP|=141.871, |ΔQ|=0.835)
+
+2025-12-03 07:27:32,756 - INFO - utils.get_cf_scores:285 - Memory used: 2.295107584 GB
+
+2025-12-03 07:27:32,756 - INFO - utils.get_cf_scores:287 - Epoch train finished
+
+2025-12-03 07:27:32,756 - INFO - utils.get_cf_scores:290 - Memory used: 2.295107584 GB
+
+2025-12-03 07:27:32,756 - INFO - utils.get_cf_scores:294 - Memory used: 2.295107584 GB
+
+2025-12-03 07:27:32,756 - INFO - utils.get_cf_scores:296 - Calculating ratings
+
+2025-12-03 07:27:33,449 - INFO - utils.get_cf_scores:310 - Memory used: 2.516164608 GB
+
+2025-12-03 07:27:54,945 - INFO - utils.get_cf_scores:325 - Memory used: 2.5296076800000002 GB
+
+2025-12-03 07:28:04,862 - INFO - utils.get_cf_scores:280 - Epoch: 3
+
+2025-12-03 07:28:04,863 - INFO - utils.get_cf_scores:282 - Pre-Memory used: 2.318905344 GB
+
+2025-12-03 07:28:29,933 - INFO - als._train_iters:481 - [None] finished epoch 3 (|ΔP|=116.122, |ΔQ|=0.772)
+
+2025-12-03 07:28:29,934 - INFO - utils.get_cf_scores:285 - Memory used: 2.3189176320000002 GB
+
+2025-12-03 07:28:29,934 - INFO - utils.get_cf_scores:287 - Epoch train finished
+
+2025-12-03 07:28:29,934 - INFO - utils.get_cf_scores:290 - Memory used: 2.3189176320000002 GB
+
+2025-12-03 07:28:29,934 - INFO - utils.get_cf_scores:294 - Memory used: 2.3189176320000002 GB
+
+2025-12-03 07:28:29,934 - INFO - utils.get_cf_scores:296 - Calculating ratings
+
+2025-12-03 07:28:30,610 - INFO - utils.get_cf_scores:310 - Memory used: 2.539974656 GB
+
+2025-12-03 07:28:51,906 - INFO - utils.get_cf_scores:325 - Memory used: 2.5389424640000002 GB
+
+2025-12-03 07:29:01,815 - INFO - cf_all_users_aisles_experiments.main:81 - Ended CF fit
+
+2025-12-03 07:29:01,816 - INFO - cf_all_users_aisles_experiments.main:83 - Starting recs
+
+2025-12-03 07:29:23,387 - INFO - cf_all_users_aisles_experiments.main:86 - Ending recs
+
+2025-12-03 07:29:23,388 - INFO - cf_all_users_aisles_experiments.main:88 - Evaluating performance of CF recommender (all items, all users) on validation set
+
+2025-12-03 07:29:33,075 - INFO - cf_all_users_aisles_experiments.main:95 - The average hit-rate on the validation set across all users is 0.116944
+
+2025-12-03 07:29:33,075 - INFO - cf_all_users_aisles_experiments.main:96 - The average ndcg@6 on the validation set across all users is 0.000533
+
+100%|██████████| 1/1 [04:30<00:00, 270.93s/it]100%|██████████| 1/1 [04:30<00:00, 270.93s/it]

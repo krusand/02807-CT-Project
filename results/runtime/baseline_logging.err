@@ -1,0 +1,14 @@
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+2025-12-02 21:23:49,762 - INFO - baseline_recommender.main:15 - Retrieving top 6 recommendations for all users
+
+2025-12-02 21:23:54,900 - INFO - baseline_recommender.main:35 - Evaluating the top 6 recommendations
+
+2025-12-02 21:24:08,920 - INFO - baseline_recommender.main:46 - The average hit-rate across all users is 0.3853
+
+2025-12-02 21:24:08,920 - INFO - baseline_recommender.main:47 - The average ndcg@6 across all users is 0.1009
+

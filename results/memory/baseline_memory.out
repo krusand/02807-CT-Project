@@ -1,0 +1,60 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 27256141: <baseline> in cluster <dcc> Done
+
+Job <baseline> was submitted from host <n-62-30-1> by user <s254120> in cluster <dcc> at Tue Dec  2 21:23:45 2025
+Job was executed on host(s) <n-62-12-15>, in queue <milan>, as user <s254120> in cluster <dcc> at Tue Dec  2 21:23:45 2025
+</zhome/70/1/224436> was used as the home directory.
+</zhome/70/1/224436/02807-CT-Project> was used as the working directory.
+Started at Tue Dec  2 21:23:45 2025
+Terminated at Tue Dec  2 21:24:09 2025
+Results reported at Tue Dec  2 21:24:09 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -J baseline
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
+#BSUB -q milan
+
+#BSUB -R "rusage[mem=32GB]"
+
+### ------------- specify wall-clock time (max allowed is 12:00)---------------- 
+#BSUB -W 12:00
+
+#BSUB -o outputs/%J.out
+#BSUB -e outputs/%J.err
+
+source .venv/bin/activate
+#python pipeline.py
+python scripts/baseline_recommender.py 
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   18.65 sec.
+    Max Memory :                                 1772 MB
+    Average Memory :                             1242.33 MB
+    Total Requested Memory :                     32768.00 MB
+    Delta Memory :                               30996.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   76 sec.
+    Turnaround time :                            24 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/27256141.err> for stderr output of this job.
+
