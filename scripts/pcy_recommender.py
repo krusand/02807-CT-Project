@@ -1,3 +1,4 @@
+import csv
 import os
 import sys
 import pickle
@@ -10,13 +11,8 @@ import pandas as pd
 # Allow imports from project root when running as a script
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 
-from config import (
-    DATA_PREPROCESSED_DIR,
-    PRODUCTS_PATH,
-    ORDERS_PATH,
-    ORDER_PRODUCTS__TRAIN_PATH,
-)
-from utils import construct_test_product_dict, eval_recs
+from config import *
+from utils import *
 
 import logging
 
@@ -406,6 +402,7 @@ def evaluate_custom_metrics(
 
 def main():
     # 1) Load PCY outputs
+    logging.info("Loading PCY artifacts")
     frequent_pairs, item_counts, num_baskets = load_pcy_artifacts()
     
     # Global popularity (for fallback recommendations)
@@ -417,6 +414,7 @@ def main():
 
 
     # 2) Build rules and rule_map
+    logging.info("Building rules and rule_map")
     rules_df = build_rule_dataframe(frequent_pairs, item_counts, num_baskets)
     rule_map = build_rule_map(
         rules_df,
@@ -426,9 +424,11 @@ def main():
     )
 
     # 3) Build user history (TRAIN)
+    logging.info("Building user history")
     user_history = build_user_history()
 
     # 4) Determine target users (validation users) and build recs_dict
+    logging.info("Building recs_dict")
     val_ratings_path = DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq"
     val_ratings = pd.read_parquet(val_ratings_path)
     val_products = construct_test_product_dict(mode="val")  # user -> list[product_id]
@@ -444,6 +444,7 @@ def main():
         )
 
     # 5) Project-level evaluation: hit-rate@6 and ndcg@6 (aligned with other recommenders)
+    logging.info("Evaluating PCY recommendations")
     eval_dict = eval_recs(
         recs_dict=recs_dict,
         rating_df=val_ratings,
@@ -454,6 +455,11 @@ def main():
 
     print(f"[PCY] Average hit-rate@{k}: {avg_hr:.6f}")
     print(f"[PCY] Average ndcg@{k}:   {avg_ndcg:.6f}")
+
+    row = ["pcy", 6, avg_hr, avg_ndcg]
+    with open(RESULTS_PATH, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
 
     # 6) Custom evaluation metrics (precision, coverage, novelty, diversity)
     future_baskets = {u: set(items) for u, items in val_products.items()}
