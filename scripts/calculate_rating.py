@@ -236,9 +236,9 @@ def save_aisle_top_products() -> None:
               )
 
     # saving dictionary to parquet
-    file_path = f"{DATA_PREPROCESSED_DIR}/{AISLE_TOP_PRODUCTS_PATH}"
+    file_path = AISLE_TOP_PRODUCTS_PATH # Fixed
     agg_df.to_parquet(file_path, index=False)
-    logging.info(f"Saved ratings to {file_path}")
+    logging.info(f"Saved aisle top products to {file_path}")
 
 
 def main():
