@@ -456,7 +456,7 @@ def main():
     print(f"[PCY] Average hit-rate@{k}: {avg_hr:.6f}")
     print(f"[PCY] Average ndcg@{k}:   {avg_ndcg:.6f}")
 
-    row = ["pcy", 6, avg_hr, avg_ndcg]
+    row = ["pcy", k, avg_hr, avg_ndcg]
     with open(RESULTS_PATH, mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(row)
