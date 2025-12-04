@@ -429,11 +429,11 @@ def main():
 
     # 4) Determine target users (validation users) and build recs_dict
     logging.info("Building recs_dict")
-    val_ratings_path = DATA_PREPROCESSED_DIR / "val_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq"
-    val_ratings = pd.read_parquet(val_ratings_path)
-    val_products = construct_test_product_dict(mode="val")  # user -> list[product_id]
+    test_ratings_path = DATA_PREPROCESSED_DIR / "test_ratings_w_freq-0.33_w_rec-0.33_w_tfidf-0.33.pq"
+    test_ratings = pd.read_parquet(test_ratings_path)
+    test_products = construct_test_product_dict(mode="test")  # user -> list[product_id]
 
-    target_users = sorted(val_products.keys())
+    target_users = sorted(test_products.keys())
     k = 6
     recs_dict = build_recs_dict(
             rule_map=rule_map,
@@ -447,8 +447,8 @@ def main():
     logging.info("Evaluating PCY recommendations")
     eval_dict = eval_recs(
         recs_dict=recs_dict,
-        rating_df=val_ratings,
-        test_products=val_products,
+        rating_df=test_ratings,
+        test_products=test_products,
     )
     avg_hr = np.mean([metrics["hit-rate"] for metrics in eval_dict.values()])
     avg_ndcg = np.mean([metrics[f"ndcg@{k}"] for metrics in eval_dict.values()])
@@ -462,7 +462,7 @@ def main():
         writer.writerow(row)
 
     # 6) Custom evaluation metrics (precision, coverage, novelty, diversity)
-    future_baskets = {u: set(items) for u, items in val_products.items()}
+    future_baskets = {u: set(items) for u, items in test_products.items()}
     product_to_users = build_product_to_users(user_history)
 
     custom_metrics = evaluate_custom_metrics(
