@@ -103,7 +103,7 @@
 
 # # Code
 
-# In[1]:
+# In[ ]:
 
 
 # imports
@@ -201,7 +201,7 @@ RESULTS_PATH = PROJ_ROOT / "results/results.csv"
 # The following is important as it samples the dataset, thus giving us different results compared to running the algorithms on full dataset.
 # We ran this notebook using 16 GB ram.
 
-# In[3]:
+# In[ ]:
 
 
 # If 0, the dataset will be ran in full
@@ -211,7 +211,7 @@ SAMPLE_DATASET_WITH_N_SAMPLES = 1000
 # ## 1. Download Dataset
 # The following functions are used to download the Instacart dataset from Kaggle through kagglehub. 
 
-# In[4]:
+# In[ ]:
 
 
 # UTILS
@@ -316,7 +316,7 @@ def sample_dataset(n_users) -> None:
 # 
 # Now we can use the functions to download the dataset:
 
-# In[5]:
+# In[ ]:
 
 
 path_to_cache = download_dataset()
@@ -330,7 +330,7 @@ convert_to_parquet()
 # The following code block saves the raw data to parquet files and divides the orders into a train, validation, and test set. We define the test set to be the last order of a user. The validation set is the second last, and the train set is every other order by the user. 
 # The three sets are saved as parquet files named `order_products__{train|val|test}`.  
 
-# In[6]:
+# In[ ]:
 
 
 # load data
@@ -386,7 +386,7 @@ op_test_new.to_parquet(ORDER_PRODUCTS__TEST_PATH)
 # 
 # We combine three ratings: *product_frequency*, *product_recency*, *TF-IDF*. Each rating is weighted by 1/3 in the overall rating matrix. Each individual rating is scaled to be within 0 and 1. Since product frequency is already scaled between 0 and 1, we will not scale this rating.
 
-# In[7]:
+# In[ ]:
 
 
 # UTILS
@@ -688,7 +688,7 @@ def save_aisle_top_products() -> None:
 
 # And this code block actually calculates the ratings:
 
-# In[8]:
+# In[ ]:
 
 
 # path to order_products for each set
@@ -736,7 +736,7 @@ for mode, path in path_dict.items():
 # 
 # We use KMeans clustering for this. We implement our own version of KMeans clustering, which we have implemented as a class, inheriting from sklearns base classes. 
 
-# In[9]:
+# In[ ]:
 
 
 # UTILS
@@ -1011,7 +1011,7 @@ class KMeans_self_implemented(BaseEstimator, ClassifierMixin):
 
 # The following code block contains functions used to perform clustering:
 
-# In[10]:
+# In[ ]:
 
 
 def convert_to_user_term_matrix(ratings):
@@ -1087,7 +1087,7 @@ def save_cluster_ratings(ratings_long, user_cluster_preds, save=True):
 
 # This code block saves the generated clusters and their ratings across the users belonging to the cluster. The clusters are also generated within the relevant CF configurations further down. We are just saving the clusters in case one wants to explore them and/or play around with the number of generated clusters.
 
-# In[11]:
+# In[ ]:
 
 
 # loading train ratings
@@ -1111,7 +1111,7 @@ save_cluster_ratings(ratings_long=ratings_long, user_cluster_preds=user_cluster_
 
 # The following functions are used to construct and evaluate our baseline recommender. The baseline is a top_n recommender, recommending the top_n most bought products across the entire dataset. We will use this baseline to compare against our later recommenders to see if they are an improvement.
 
-# In[12]:
+# In[ ]:
 
 
 def construct_test_product_dict(mode: str) -> dict:
@@ -1212,7 +1212,7 @@ def eval_recs(recs_dict: dict, rating_df: pd.DataFrame, test_products: dict) -> 
 
 # Now we can define and evaluate the baseline recommender:
 
-# In[13]:
+# In[ ]:
 
 
 top_n = 6
@@ -1261,7 +1261,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 
 # The following code block loads data preliminaries for constructing the CF recommenders. These include ratings, aisle data, and the products data.
 
-# In[14]:
+# In[ ]:
 
 
 # loading ratings for each split
@@ -1291,7 +1291,7 @@ n_recs = 6
 
 # Additionally, we need to define the following functions:
 
-# In[15]:
+# In[ ]:
 
 
 def get_recs(pred_ratings: np.ndarray, 
@@ -1514,7 +1514,7 @@ def get_cf_scores(features: int,
 # ### CF_Full
 # This is the first CF configuration trying to predict the full rating matrix of size `n_users` $\times$ `n_items`.
 
-# In[16]:
+# In[ ]:
 
 
 # CF fit
@@ -1552,7 +1552,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 # ### CF_A
 # This is the second CF configuration using all users and product aisles instead of each individual product. This reduces the amount of columns, thus reducing the overall size of the rating matrix.
 
-# In[17]:
+# In[ ]:
 
 
 # CF fit
@@ -1595,7 +1595,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 # And now onto the third CF configuration using user clusters and all products. This reduces the number of rows of the rating matrix, reducing the overall size of the matrix.
 # 
 
-# In[18]:
+# In[ ]:
 
 
 # cluster users
@@ -1643,7 +1643,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 # ### CF_AC
 # This is the final CF configuration using both user clusters and product aisles, resulting in the smallest rating matrix to predict among all four CF configurations.
 
-# In[19]:
+# In[ ]:
 
 
 # cluster users
@@ -1702,7 +1702,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 # 
 # We use the following functions for the apriori recommender:
 
-# In[20]:
+# In[ ]:
 
 
 def load_data() -> pd.DataFrame:
@@ -2279,7 +2279,7 @@ def build_user_recs_dict(
 
 # Now we are ready to train and evaluate the apriori recommender:
 
-# In[21]:
+# In[ ]:
 
 
 # Global random seed for reproducibility
@@ -2350,7 +2350,7 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 
 # This is our final recommender, the PCY recommender. Once again, we must first define a series of functions:
 
-# In[22]:
+# In[ ]:
 
 
 def load_train_data() -> pd.DataFrame:
@@ -2978,7 +2978,7 @@ def evaluate_custom_metrics(
 
 # Now we can first train the PCY algorithm:
 
-# In[23]:
+# In[ ]:
 
 
 # training passes
@@ -2989,7 +2989,7 @@ print("PCY Pass 1 & Pass 2 completed and results saved.")
 
 # And then generate and evaluate some recommendations:
 
-# In[24]:
+# In[ ]:
 
 
 # 1) Load PCY outputs
@@ -3081,7 +3081,7 @@ print(
 
 # Finally we can compare our final models
 
-# In[25]:
+# In[ ]:
 
 
 overall_results = pd.read_csv(RESULTS_PATH)
