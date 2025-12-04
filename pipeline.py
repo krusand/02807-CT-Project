@@ -16,55 +16,55 @@ def get_pipeline_steps():
 
         { # DOWNLOAD DATASET
             "name": "Download dataset",
-            "script": "scripts/download_dataset.py",
+            "script": "scripts/01_download_dataset.py",
             "description": "Downloads dataset",
         },
 
         { # DATA SPLITS
             "name": "Data splits",
-            "script": "scripts/data_split.py",
+            "script": "scripts/02_data_split.py",
             "description": "Splits the combined order_products into a train, validation, and test set"
         },
 
         { # CALCULATE RATINGS
             "name": "Calculate rating",
-            "script": "scripts/calculate_rating.py",
+            "script": "scripts/03_calculate_rating.py",
             "description": "Calculate rating",
         },
 
         { # USER CLUSTERING
             "name": "User clustering",
-            "script": "scripts/clustering.py",
+            "script": "scripts/04_clustering.py",
             "description": "Clusters users into clusters s.t. it's faster to run recommender system"
         },
 
         { # BASELINE RECOMMENDER
             "name": "Baseline recommender",
-            "script": "scripts/baseline_recommender.py",
+            "script": "scripts/05_baseline_recommender.py",
             "description": "Perform and evaluate top n recommender as baseline"
         },
 
         { # COLLABORATIVE FILTERING
             "name": "Collaborative filtering",
-            "script": "scripts/collaborative_filter.py",
+            "script": "scripts/06_collaborative_filter.py",
             "description": "Runs collaborative filtering"
         },
 
         { # APRIORI RECOMMENDATIONS
             "name": "Apriori Recommendations",
-            "script": "scripts/apriori.py",
+            "script": "scripts/07_apriori.py",
             "description": "Runs apriori algorithm to generate recommendations"
         },
 
         { # PCY TRAIN
             "name": "PCY Train",
-            "script": "scripts/pcy_train.py",
+            "script": "scripts/08a_pcy_train.py",
             "description": "Performs two passes to train the pcy recommender"
         },
 
         { # PCY RECOMMENDER
             "name": "APRIORI Recommendations",
-            "script": "scripts/pcy_recommender.py",
+            "script": "scripts/08b_pcy_recommender.py",
             "description": "Retrieves the trained pcy algorithm to generate and evaluate recommendations"
         },
     ]
