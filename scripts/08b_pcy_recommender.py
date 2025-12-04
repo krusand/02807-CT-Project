@@ -422,6 +422,12 @@ def main():
         min_lift=1.0,
         top_n=50,
     )
+    save_dir = DATA_PREPROCESSED_DIR / "pcy_recommender"
+    os.makedirs(save_dir, exist_ok=True)
+
+    rules_path = save_dir / "rules_from_script.csv"
+    rules_df.to_csv(rules_path, index=False)
+    print(f"[PCY] Saved rules_df at: {rules_path}")
 
     # 3) Build user history (TRAIN)
     logging.info("Building user history")
@@ -485,6 +491,23 @@ def main():
         f"novelty@{k}: {custom_metrics['novelty']:.4f}, "
         f"diversity@{k}: {custom_metrics['diversity']:.4f}"
     )
+    # Optional: save custom metrics summary for comparison with notebook
+    summary_path = save_dir / "custom_metrics_summary.csv"
+
+    summary_df = pd.DataFrame([{
+        "model": "pcy",
+        "k": k,
+        "hit_rate": avg_hr,
+        "ndcg": avg_ndcg,
+        "precision": custom_metrics["precision"],
+        "coverage": custom_metrics["coverage"],
+        "novelty": custom_metrics["novelty"],
+        "diversity": custom_metrics["diversity"],
+        "n_users": custom_metrics["n_users"],
+    }])
+
+    summary_df.to_csv(summary_path, index=False)
+    print(f"[PCY] Saved custom metrics summary at: {summary_path}")
 
 
 if __name__ == "__main__":
