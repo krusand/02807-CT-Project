@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from config import *
-from mba_utils import *
+from other_scripts.mba_utils import *
 from utils import *
 
 
