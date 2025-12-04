@@ -1,0 +1,66 @@
+PCY Pass 1 & Pass 2 completed and results saved.
+[PCY] Average hit-rate@6: 0.126357
+[PCY] Average ndcg@6:   0.027240
+[PCY] Custom metrics on sample of 200 users (k=6):
+  precision@6: 0.0183, coverage@6: 1.0000, novelty@6: 1.0000, diversity@6: 0.7890
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 27273020: <pcy> in cluster <dcc> Done
+
+Job <pcy> was submitted from host <hpclogin1> by user <s254120> in cluster <dcc> at Thu Dec  4 10:23:29 2025
+Job was executed on host(s) <n-62-12-15>, in queue <milan>, as user <s254120> in cluster <dcc> at Thu Dec  4 10:23:30 2025
+</zhome/70/1/224436> was used as the home directory.
+</zhome/70/1/224436/02807-CT-Project> was used as the working directory.
+Started at Thu Dec  4 10:23:30 2025
+Terminated at Thu Dec  4 10:52:07 2025
+Results reported at Thu Dec  4 10:52:07 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -J pcy
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
+#BSUB -q milan
+
+#BSUB -R "rusage[mem=8GB]"
+
+### ------------- specify wall-clock time (max allowed is 12:00)---------------- 
+#BSUB -W 12:00
+
+#BSUB -o outputs/%J.out
+#BSUB -e outputs/%J.err
+
+source .venv/bin/activate
+#python pipeline.py
+python scripts/pcy_train.py
+python scripts/pcy_recommender.py 
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   1704.76 sec.
+    Max Memory :                                 4517 MB
+    Average Memory :                             4396.00 MB
+    Total Requested Memory :                     8192.00 MB
+    Delta Memory :                               3675.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   1725 sec.
+    Turnaround time :                            1718 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/27273020.err> for stderr output of this job.
+

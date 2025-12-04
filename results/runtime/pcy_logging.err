@@ -1,0 +1,100 @@
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+2025-12-04 10:23:31,660 - INFO - pcy_train.run_pass1:72 - Loading train data for PCY Pass 1
+
+2025-12-04 10:23:33,852 - INFO - pcy_train.run_pass1:75 - Building baskets and item counts
+
+2025-12-04 10:24:20,091 - INFO - pcy_train.run_pass1:80 - Number of baskets: 2933665
+
+2025-12-04 10:24:20,092 - INFO - pcy_train.run_pass1:81 - Number of unique items: 49641
+
+2025-12-04 10:24:20,092 - INFO - pcy_train.run_pass1:85 - Bucket sizes: [49641, 74461, 99282, 148923]
+
+2025-12-04 10:24:20,092 - INFO - pcy_train.run_pass1:92 - Running Pass 1 for num_buckets=49641
+
+2025-12-04 10:30:36,161 - INFO - pcy_train.run_pass1:112 - num_buckets=49641, support=0.0010 → threshold=2933, frequent_buckets=48155
+
+2025-12-04 10:30:36,162 - INFO - pcy_train.run_pass1:112 - num_buckets=49641, support=0.0020 → threshold=5867, frequent_buckets=4397
+
+2025-12-04 10:30:36,162 - INFO - pcy_train.run_pass1:112 - num_buckets=49641, support=0.0050 → threshold=14668, frequent_buckets=186
+
+2025-12-04 10:30:36,162 - INFO - pcy_train.run_pass1:112 - num_buckets=49641, support=0.0100 → threshold=29336, frequent_buckets=20
+
+2025-12-04 10:30:36,162 - INFO - pcy_train.run_pass1:92 - Running Pass 1 for num_buckets=74461
+
+2025-12-04 10:36:53,145 - INFO - pcy_train.run_pass1:112 - num_buckets=74461, support=0.0010 → threshold=2933, frequent_buckets=23767
+
+2025-12-04 10:36:53,146 - INFO - pcy_train.run_pass1:112 - num_buckets=74461, support=0.0020 → threshold=5867, frequent_buckets=1830
+
+2025-12-04 10:36:53,146 - INFO - pcy_train.run_pass1:112 - num_buckets=74461, support=0.0050 → threshold=14668, frequent_buckets=141
+
+2025-12-04 10:36:53,146 - INFO - pcy_train.run_pass1:112 - num_buckets=74461, support=0.0100 → threshold=29336, frequent_buckets=20
+
+2025-12-04 10:36:53,146 - INFO - pcy_train.run_pass1:92 - Running Pass 1 for num_buckets=99282
+
+2025-12-04 10:43:10,857 - INFO - pcy_train.run_pass1:112 - num_buckets=99282, support=0.0010 → threshold=2933, frequent_buckets=10855
+
+2025-12-04 10:43:10,858 - INFO - pcy_train.run_pass1:112 - num_buckets=99282, support=0.0020 → threshold=5867, frequent_buckets=1288
+
+2025-12-04 10:43:10,858 - INFO - pcy_train.run_pass1:112 - num_buckets=99282, support=0.0050 → threshold=14668, frequent_buckets=125
+
+2025-12-04 10:43:10,858 - INFO - pcy_train.run_pass1:112 - num_buckets=99282, support=0.0100 → threshold=29336, frequent_buckets=19
+
+2025-12-04 10:43:10,858 - INFO - pcy_train.run_pass1:92 - Running Pass 1 for num_buckets=148923
+
+2025-12-04 10:49:28,504 - INFO - pcy_train.run_pass1:112 - num_buckets=148923, support=0.0010 → threshold=2933, frequent_buckets=5290
+
+2025-12-04 10:49:28,505 - INFO - pcy_train.run_pass1:112 - num_buckets=148923, support=0.0020 → threshold=5867, frequent_buckets=939
+
+2025-12-04 10:49:28,505 - INFO - pcy_train.run_pass1:112 - num_buckets=148923, support=0.0050 → threshold=14668, frequent_buckets=108
+
+2025-12-04 10:49:28,505 - INFO - pcy_train.run_pass1:112 - num_buckets=148923, support=0.0100 → threshold=29336, frequent_buckets=18
+
+2025-12-04 10:49:28,505 - INFO - pcy_train.run_pass1:117 - PCY Pass 1 grid search finished
+
+2025-12-04 10:49:28,510 - INFO - pcy_train.run_pass1:136 - Pass 1 results saved to /zhome/70/1/224436/02807-CT-Project/data/2_preprocessed/pcy/pcy_pass1_results.pkl
+
+2025-12-04 10:49:28,512 - INFO - pcy_train.run_pass1:156 - Pass 1 selected params saved to /zhome/70/1/224436/02807-CT-Project/data/2_preprocessed/pcy/pcy_params.pkl
+
+2025-12-04 10:49:29,561 - INFO - pcy_train.run_pass2:192 - Loading train data for PCY Pass 2
+
+2025-12-04 10:49:31,451 - INFO - pcy_train.run_pass2:195 - Building baskets and item counts
+
+2025-12-04 10:50:17,628 - INFO - pcy_train.run_pass2:200 - Number of baskets (Pass 2): 2933665
+
+2025-12-04 10:50:17,629 - INFO - pcy_train.run_pass2:201 - Number of unique items (Pass 2): 49641
+
+2025-12-04 10:50:17,629 - INFO - pcy_train.run_pass2:207 - Pass 2 using num_buckets=74461, support=0.0050 → threshold=14668
+
+2025-12-04 10:50:17,632 - INFO - pcy_train.run_pass2:218 - Number of frequent single items: 251
+
+2025-12-04 10:51:11,303 - INFO - pcy_train.run_pass2:239 - Number of frequent buckets in Pass 2: 83
+
+2025-12-04 10:51:19,577 - INFO - pcy_train.run_pass2:267 - Number of frequent pairs: 74
+
+2025-12-04 10:51:19,589 - INFO - pcy_train.run_pass2:285 - Pass 2 frequent pairs saved to /zhome/70/1/224436/02807-CT-Project/data/2_preprocessed/pcy/pcy_pass2_frequent_pairs.pkl
+
+2025-12-04 10:51:24,560 - INFO - pcy_recommender.main:405 - Loading PCY artifacts
+
+2025-12-04 10:51:24,572 - INFO - pcy_recommender.load_pcy_artifacts:52 - Loaded PCY artefacts: 74 frequent pairs, 49641 items, 2933665 baskets
+
+2025-12-04 10:51:24,586 - INFO - pcy_recommender.main:417 - Building rules and rule_map
+
+2025-12-04 10:51:24,587 - INFO - pcy_recommender.build_rule_dataframe:107 - Constructed 148 association rules from frequent pairs
+
+2025-12-04 10:51:24,593 - INFO - pcy_recommender.build_rule_map:135 - Built rule_map for 30 antecedent items
+
+2025-12-04 10:51:24,593 - INFO - pcy_recommender.main:427 - Building user history
+
+2025-12-04 10:51:35,290 - INFO - pcy_recommender.build_user_history:166 - Built user history for 206209 users
+
+2025-12-04 10:51:35,348 - INFO - pcy_recommender.main:431 - Building recs_dict
+
+2025-12-04 10:51:43,967 - INFO - pcy_recommender.build_recs_dict:230 - Built recommendations for 206209 users (k=6)
+
+2025-12-04 10:51:43,968 - INFO - pcy_recommender.main:447 - Evaluating PCY recommendations
+
