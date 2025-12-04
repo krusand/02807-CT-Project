@@ -197,6 +197,17 @@ CLUSTER_EXP_PATH = OUTPUTS_PATH / "cluster_experiment_results.pkl"
 RESULTS_PATH = PROJ_ROOT / "results/results.csv"
 
 
+# ### IMPORTANT 
+# The following is important as it samples the dataset, thus giving us different results compared to running the algorithms on full dataset.
+# We ran this notebook using 16 GB ram.
+
+# In[ ]:
+
+
+# If 0, the dataset will be ran in full
+SAMPLE_DATASET_WITH_N_SAMPLES = 1000
+
+
 # ## 1. Download Dataset
 # The following functions are used to download the Instacart dataset from Kaggle through kagglehub. 
 
@@ -212,7 +223,7 @@ def download_dataset() -> str:
 
     Parameters
     ----------
-
+ 
     Returns
     -------
     path (str): Path to downloaded dataset
@@ -233,7 +244,6 @@ def move_dataset_from_cache_to_folder(path_to_cache: str, path_to_folder: str) -
     path_to_cache (str): Path to downloaded dataset
 
     path_to_folder (int, float): Path to dataset destination
-
     
     Returns
     -------
@@ -249,6 +259,59 @@ def convert_to_parquet() -> None:
         file_extension = "."+(file_extension)
         pd.read_csv(DATA_RAW_DIR / (file_name + file_extension)).to_parquet(DATA_CLEANED_DIR / (file_name + ".pq"))
 
+def sample_dataset(n_users) -> None:
+    """    
+    Downsamples the dataset to be run in this notebook on commodity hardware. 
+    For full dataset, code should be run on the hpc, or a machine with
+    >256 GB of RAM.
+
+    Samples n_users from the orders.csv files, and ensures all other files only have
+    information which was found in the sampled users orders.
+
+    Parameters
+    ----------
+    n_users (int): How many users should be included. Is useful 
+                     for reducing the dataset size for everything to be
+                     run in this notebook. This WILL give different results
+                     than what we got when we ran this on the HPC.   """
+    print("Sampling dataset")
+    user_sample = pd.read_csv(ORDERS_PATH_CSV)[["user_id"]].drop_duplicates().sample(n_users)["user_id"].tolist()
+
+
+    aisles = pd.read_csv(AISLES_PATH_CSV)
+    departments = pd.read_csv(DEPARTMENTS_PATH_CSV)
+    order_products_prior = pd.read_csv(ORDER_PRODUCTS__PRIOR_PATH_CSV)
+    order_products_train = pd.read_csv(ORDER_PRODUCTS__TRAIN_PATH_CSV)
+    orders = pd.read_csv(ORDERS_PATH_CSV)
+    products = pd.read_csv(PRODUCTS_PATH_CSV)
+
+    new_orders = orders[orders["user_id"].isin(user_sample)]
+
+    new_order_products_prior = (order_products_prior
+    .merge(new_orders, how='inner', on='order_id'))[order_products_prior.columns]
+
+
+    new_order_products_train = (order_products_train
+    .merge(new_orders, how='inner', on='order_id'))[order_products_train.columns]
+
+    products_prior = new_order_products_prior["product_id"].drop_duplicates().tolist()
+    products_train = new_order_products_train["product_id"].drop_duplicates().tolist()
+
+    new_products = products[products["product_id"].isin(products_prior) | products["product_id"].isin(products_train)]
+
+    new_aisles = aisles[aisles["aisle_id"].isin(new_products["aisle_id"].drop_duplicates().tolist())]
+
+    new_departments = departments[departments["department_id"].isin(new_products["department_id"].drop_duplicates().tolist())]
+
+    # Overwrite csvs
+    new_aisles.to_csv(AISLES_PATH_CSV)
+    new_departments.to_csv(DEPARTMENTS_PATH_CSV)
+    new_order_products_prior.to_csv(ORDER_PRODUCTS__PRIOR_PATH_CSV)
+    new_order_products_train.to_csv(ORDER_PRODUCTS__TRAIN_PATH_CSV)
+    new_orders.to_csv(ORDERS_PATH_CSV)
+    new_products.to_csv(PRODUCTS_PATH_CSV)
+
+
 
 # 
 # Now we can use the functions to download the dataset:
@@ -258,10 +321,12 @@ def convert_to_parquet() -> None:
 
 path_to_cache = download_dataset()
 move_dataset_from_cache_to_folder(path_to_cache=path_to_cache, path_to_folder=DATA_RAW_DIR)
+if SAMPLE_DATASET_WITH_N_SAMPLES > 0:
+    sample_dataset(SAMPLE_DATASET_WITH_N_SAMPLES)
 convert_to_parquet()
 
 
-# w## 2. Data Split
+# ## 2. Data Split
 # The following code block saves the raw data to parquet files and divides the orders into a train, validation, and test set. We define the test set to be the last order of a user. The validation set is the second last, and the train set is every other order by the user. 
 # The three sets are saved as parquet files named `order_products__{train|val|test}`.  
 
@@ -500,7 +565,10 @@ def calculate_tf_idf(merged_df: pd.DataFrame, orders: pd.DataFrame) -> None:
     logging.info(f"Saved user_product_tfidf min_max_scaled to {file_path}")
 
 def combine_ratings(mode: str) -> None:
-    """Combines frequency, recency and TF.IDF into one rating through a equally weighted linear combination"""
+    """
+    Combines frequency, recency and TF.IDF into one rating through a equally weighted linear combination
+
+    """
     logging.info("")
     frequency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_frequency.pq")
     recency = pd.read_parquet(DATA_PREPROCESSED_DIR / "user_product_recency_min_max_scaled.pq")
@@ -521,6 +589,7 @@ def combine_ratings(mode: str) -> None:
 
     final_ratings = merged[['user_id', 'product_id', 'ranke_ui']]
     final_ratings.columns = ["user", "item", 'rating']
+
 
     filename_parquet = f"{mode}_ratings_w_freq-{w_freq:.2f}_w_rec-{w_rec:.2f}_w_tfidf-{w_tfidf:.2f}.pq"
     file_path = DATA_PREPROCESSED_DIR / filename_parquet
@@ -634,7 +703,6 @@ orders = pd.read_parquet(ORDERS_PATH)
 # saving ratings and aisle ratings for each set {train, val, test}
 for mode, path in path_dict.items():
     order_products = pd.read_parquet(path)
-    
     merged_df = pd.merge(
         order_products,
         orders,
@@ -2286,12 +2354,14 @@ with open(RESULTS_PATH, mode="a", newline="") as file:
 
 
 def load_train_data() -> pd.DataFrame:
-    """Load train orders and order_products in line with the project splits."""
+    """Load train orders and order_products in line with the project splits.
+    """
     orders = pd.read_parquet(ORDERS_PATH)
     op_train = pd.read_parquet(ORDER_PRODUCTS__TRAIN_PATH)
 
     train_order_ids = orders.loc[orders["eval_set"] == "train", "order_id"]
     op_train = op_train[op_train["order_id"].isin(train_order_ids)]
+
 
     return op_train
 
@@ -3011,7 +3081,7 @@ print(
 
 # Finally we can compare our final models
 
-# In[75]:
+# In[ ]:
 
 
 overall_results = pd.read_csv(RESULTS_PATH)
