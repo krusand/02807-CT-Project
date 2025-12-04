@@ -14,23 +14,23 @@ def get_pipeline_steps():
     pipeline_steps = [
         #### EVENTS:
 
-        # { # DOWNLOAD DATASET
-        #     "name": "Download dataset",
-        #     "script": "scripts/download_dataset.py",
-        #     "description": "Downloads dataset",
-        # },
+        { # DOWNLOAD DATASET
+            "name": "Download dataset",
+            "script": "scripts/download_dataset.py",
+            "description": "Downloads dataset",
+        },
 
-        # { # DATA SPLITS
-        #     "name": "Data splits",
-        #     "script": "scripts/data_split.py",
-        #     "description": "Splits the combined order_products into a train, validation, and test set"
-        # },
+        { # DATA SPLITS
+            "name": "Data splits",
+            "script": "scripts/data_split.py",
+            "description": "Splits the combined order_products into a train, validation, and test set"
+        },
 
-        # { # CALCULATE RATINGS
-        #     "name": "Calculate rating",
-        #     "script": "scripts/calculate_rating.py",
-        #     "description": "Calculate rating",
-        # },
+        { # CALCULATE RATINGS
+            "name": "Calculate rating",
+            "script": "scripts/calculate_rating.py",
+            "description": "Calculate rating",
+        },
 
         { # USER CLUSTERING
             "name": "User clustering",
@@ -38,23 +38,35 @@ def get_pipeline_steps():
             "description": "Clusters users into clusters s.t. it's faster to run recommender system"
         },
 
-        # { # BASELINE RECOMMENDER
-        #     "name": "Baseline recommender",
-        #     "script": "scripts/baseline_recommender.py",
-        #     "description": "Perform and evaluate top n recommender as baseline"
-        # },
+        { # BASELINE RECOMMENDER
+            "name": "Baseline recommender",
+            "script": "scripts/baseline_recommender.py",
+            "description": "Perform and evaluate top n recommender as baseline"
+        },
 
-        # { # COLLABORATIVE FILTERING
-        #     "name": "Collaborative filtering",
-        #     "script": "scripts/collaborative_filter.py",
-        #     "description": "Runs collaborative filtering"
-        # },
+        { # COLLABORATIVE FILTERING
+            "name": "Collaborative filtering",
+            "script": "scripts/collaborative_filter.py",
+            "description": "Runs collaborative filtering"
+        },
 
-        # { # APRIORI RECOMMENDATIONS
-        #     "name": "APRIORI Recommendations",
-        #     "script": "scripts/apriori.py",
-        #     "description": "Runs apriori algorithm to generate recommendations"
-        # },
+        { # APRIORI RECOMMENDATIONS
+            "name": "Apriori Recommendations",
+            "script": "scripts/apriori.py",
+            "description": "Runs apriori algorithm to generate recommendations"
+        },
+
+        { # PCY TRAIN
+            "name": "PCY Train",
+            "script": "scripts/pcy_train.py",
+            "description": "Performs two passes to train the pcy recommender"
+        },
+
+        { # PCY RECOMMENDER
+            "name": "APRIORI Recommendations",
+            "script": "scripts/pcy_recommender.py",
+            "description": "Retrieves the trained pcy algorithm to generate and evaluate recommendations"
+        },
     ]
     
     return pipeline_steps
