@@ -132,6 +132,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils.validation import check_is_fitted
+from sklearn.metrics import davies_bouldin_score
 from tqdm import tqdm
 
 
@@ -1038,6 +1039,8 @@ def cluster_and_predict_users(ratings_matrix, n_clusters=50, n_representative_fe
 
     km = KMeans_self_implemented(n_clusters=n_clusters)
     y_pred = km.fit_predict(X_svd)
+    dbs = davies_bouldin_score(X_svd, y_pred)
+    print(f"Davies-bould-score: {dbs}")
 
     return y_pred
 

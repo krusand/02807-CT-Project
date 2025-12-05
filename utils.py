@@ -631,14 +631,16 @@ def convert_to_user_term_matrix(ratings):
 
 
 def cluster_and_predict_users(ratings_matrix, n_clusters=50, n_representative_features=50):
-
+    """Uses SVD to create a latent representation of the rating matrix, and clusters using these features"""
     svd = TruncatedSVD(n_components=n_representative_features)
     X_svd = svd.fit_transform(ratings_matrix)
 
     km = KMeans_self_implemented(n_clusters=n_clusters)
     y_pred = km.fit_predict(X_svd)
-
+    dbs = davies_bouldin_score(X_svd, y_pred)
+    print(f"Davies-bouldin-score: {dbs}")
     return y_pred
+
 
 
 def assign_cluster_to_users(y_pred, ratings_long):
