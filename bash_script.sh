@@ -13,5 +13,6 @@
 #BSUB -e outputs/%J.err
 
 source .venv/bin/activate
-#python pipeline.py
-python scripts/mba_recs.py 
+
+python pipeline.py
+
