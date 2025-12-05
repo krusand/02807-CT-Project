@@ -14,6 +14,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils.validation import check_is_fitted
+from sklearn.metrics import davies_bouldin_score
 
 from config import *
 from sklearn.base import BaseEstimator, TransformerMixin
